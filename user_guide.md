@@ -1,4 +1,4 @@
-#Currenr User Guide:
+#Currenr User Guide: 
 
 #Bounce card — clean levels, every time:
  1. Masters bounce in full mode, mobile saves are sketches. This is the actual cause of your level issues, not the float sync: LITE mode has no limiter and runs the compressor 6:1 at −14 dB, so hot input gets baked-in squash before the recorder ever sees it.
