@@ -1,5 +1,7 @@
 # Bounce card — clean levels, every time
 
+(Before you read this: OUT tab > Level -6 or -10dB are my preferred starting points. The rest of this information hints to that, rants about dead code and beats around the bush saying you need to set the level but then used .7 as a reference. When you adjust LEVEL in the OUT tab a toast appears showing you the dB adjustment.)
+
 1. Masters bounce in full mode, LITE saves are sketches. LITE is any
    coarse-pointer device or a ?lite URL — it runs the compressor 6:1 at
    −14 dB with no limiter, so hot input gets baked-in squash before the
