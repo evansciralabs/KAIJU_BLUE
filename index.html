@@ -27,7 +27,14 @@ button{font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;
 .tb{display:flex;gap:4px}.tb button{padding:4px 16px;color:var(--dm);border-bottom:2px solid transparent;font-weight:700}.tb button.on{color:var(--c);border-color:var(--c);text-shadow:0 0 8px var(--c)}
 .tr{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px}
 .oc,.hb{border:1px solid rgba(169,198,210,.5);background:rgba(2,8,14,.18);transition:box-shadow .15s,background .15s}
-.oc{display:flex;align-items:center;gap:4px;padding:2px 4px}.oc button{padding:0 8px;font-size:15px;font-weight:700;line-height:1.3}.oc span{font-size:10px}.hb{padding:4px 9px;font-weight:700;font-size:10px}
+.oc{display:flex;align-items:center;gap:4px;padding:2px 4px}#vw.vwg{position:fixed;z-index:25;top:calc(env(safe-area-inset-top,0px) + 15px);right:calc(env(safe-area-inset-right,0px) + 12px);width:28px;height:28px;display:grid;place-items:center;padding:0;border:1px solid rgba(169,198,210,.45);background:rgba(2,8,14,.3);border-radius:50%;transition:box-shadow .2s,border-color .2s}
+.vwg svg{width:15px;height:15px;fill:none;stroke:var(--dm);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.vwg:hover,.vwg.on{border-color:var(--c);box-shadow:0 0 10px rgba(6,182,212,.45)}.vwg.on svg{stroke:var(--c);filter:drop-shadow(0 0 3px var(--c))}
+#lock button{position:absolute;bottom:0;width:38px;height:38px;display:grid;align-items:end;background:none;border:0;color:var(--c);font:700 22px/1 inherit;text-shadow:0 0 8px var(--c);opacity:.9;pointer-events:auto;-webkit-tap-highlight-color:transparent}
+#lock #o1{left:0;justify-items:start;padding:0 0 3px 7px}#lock #o2{right:0;justify-items:end;padding:0 7px 3px 0}#lock button:active{transform:scale(.88);opacity:1}
+#app.v #lock button{pointer-events:none}
+.so{margin-top:3px;font-size:9px;letter-spacing:.16em;color:var(--dm);transition:color .25s,text-shadow .25s}.so b{font-weight:700}.so span{display:none;margin-left:6px}.so.fl{color:var(--c);text-shadow:0 0 8px var(--c)}.so.fl span{display:inline}
+.oc button{padding:0 8px;font-size:15px;font-weight:700;line-height:1.3}.oc span{font-size:10px}.hb{padding:4px 9px;font-weight:700;font-size:10px}
 .oc:hover,.hb:hover{box-shadow:0 0 10px var(--c);border-color:var(--c)}.hb.on{background:rgba(6,182,212,.3);border-color:var(--c);color:#fff}
 .col{display:none;flex-direction:column;flex-wrap:wrap;gap:10px;grid-row:2;align-self:stretch;min-height:0;max-height:100%;padding:6px 0}.dn{margin-top:auto}.col.on{display:flex}
 .L{grid-column:1;align-items:flex-start;align-content:flex-start}.R{grid-column:3;align-items:flex-end;align-content:flex-end}
@@ -96,10 +103,11 @@ html,body{touch-action:none;overscroll-behavior:none}
 </style></head><body>
 <img class="bd" id="bd" alt=""><img class="hero" id="hero" alt="KAIJU"><div class="vg"></div><div id="fl"></div>
 <div id="app">
+<button class="vwg" id="vw" aria-pressed="false" aria-label="VIEW"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
 <div class="top"><div class="tb" id="tb"></div>
-<div class="tr"><div class="oc"><button id="o1" aria-label="OCTAVE DOWN">-</button><span>OCT <b id="ov">3</b></span><button id="o2" aria-label="OCTAVE UP">+</button></div><button class="hb" id="hd" aria-pressed="false">HOLD</button><button class="hb" id="fz" aria-pressed="false">FREEZE</button><button class="hb" id="pa">PANIC</button><button class="hb" id="vw" aria-pressed="false">VIEW</button></div></div>
-<div id="lock" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-<div id="scope" aria-hidden="true"><canvas id="radar" width="360" height="360"></canvas><div id="sp"><div class="sl"><b id="sp-id">K--</b><span id="sp-sig">STANDBY</span></div><div class="sn" id="sp-name">NO LOCK</div><div class="sd"><span id="sp-rng">—</span><span id="sp-brg">—</span><span id="sp-tail">—</span></div><div class="sv" id="sp-voc"></div></div></div>
+<div class="tr"><button class="hb" id="hd" aria-pressed="false">HOLD</button><button class="hb" id="fz" aria-pressed="false">FREEZE</button><button class="hb" id="pu" aria-pressed="false">PULSE</button><button class="hb" id="pa">PANIC</button></div></div>
+<div id="lock"><i></i><i></i><i></i><i></i><button id="o1" aria-label="OCTAVE DOWN">&#8722;</button><button id="o2" aria-label="OCTAVE UP">+</button></div>
+<div id="scope" aria-hidden="true"><canvas id="radar" width="360" height="360"></canvas><div id="sp"><div class="sl"><b id="sp-id">K--</b><span id="sp-sig">STANDBY</span></div><div class="sn" id="sp-name">NO LOCK</div><div class="sd"><span id="sp-rng">—</span><span id="sp-brg">—</span><span id="sp-tail">—</span></div><div class="sv" id="sp-voc"></div><div class="so" id="sp-oct">OCT <b id="ov">3</b><span id="sp-orng"></span></div></div></div>
 <div class="hits" id="hits"></div><div class="kb" id="kb" role="group" aria-label="Piano keys. Typing keys A to apostrophe play notes, Z to M play chords, Caps Lock holds, Space is panic. MIDI keyboards work too"></div>
 </div>
 <button id="pw" class="off" aria-label="POWER" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8"/><path d="M6.4 6.9a8 8 0 1 0 11.2 0"/></svg><i></i></button><div id="rd" role="status" aria-live="polite"></div><div id="err"></div>
@@ -491,7 +499,7 @@ addEventListener("contextmenu",e=>{if(!isTx(e.target)&&!e.target.closest("#svt")
 const KL={a:0,w:1,s:2,e:3,d:4,f:5,t:6,g:7,y:8,h:9,u:10,j:11,k:12,o:13,l:14,p:15,";":16,"'":17},BL=[1,3,6,8,10],K=$("#kb");let wi=0;
 for(let s=0;s<24;s++){const bk=BL.includes(s%12),d=document.createElement("div");d.className=bk?"bk":"wk";if(bk)d.style.left="calc("+wi*100/14+"% - 1.7%)";else{wi++;d.textContent=Object.keys(KL).find(k=>KL[k]===s)||""}
  d.onpointerdown=e=>{e.preventDefault();if(!ready)return;ptrS[e.pointerId]=s;down(s,"p"+e.pointerId)};K.appendChild(d);keyEl[s]=d}
-const setOct=d=>{oct=cl(oct+d,0,4);$("#ov").textContent=oct};$("#o1").onclick=()=>setOct(-1);$("#o2").onclick=()=>setOct(1);
+let octT=0;const setOct=d=>{oct=cl(oct+d,0,4);$("#ov").textContent=oct;$("#sp-orng").textContent="C"+oct+"\u2013F"+(oct+1);const so=$("#sp-oct");so.classList.add("fl");clearTimeout(octT);octT=setTimeout(()=>so.classList.remove("fl"),1300)};$("#o1").onclick=()=>setOct(-1);$("#o2").onclick=()=>setOct(1);
 let pT1,pT2;
 function panic(){pcReset();frzOn=false;frzUI(0);frzStop();hold=false;const hb=$("#hd");hb.classList.remove("on");hb.setAttribute("aria-pressed",false);releaseAll();sus.length=0;
  if(!ac)return;const t=ac.currentTime;wm.gain.cancelScheduledValues(t);wm.gain.setValueAtTime(wm.gain.value,t);wm.gain.linearRampToValueAtTime(0,t+.03);
@@ -500,7 +508,7 @@ function panic(){pcReset();frzOn=false;frzUI(0);frzStop();hold=false;const hb=$(
 const pend=e=>{const s=ptrS[e.pointerId];if(s!==undefined){delete ptrS[e.pointerId];up(s,"p"+e.pointerId)}};
 ["pointerup","pointercancel"].forEach(t=>addEventListener(t,pend,true));
 ["touchend","touchcancel"].forEach(t=>addEventListener(t,e=>{if(!e.touches.length)for(const id in ptrS){const s=ptrS[id];delete ptrS[id];up(s,"p"+id)}},{capture:true,passive:true}));
-$("#hd").onclick=()=>{hold=!hold;$("#hd").classList.toggle("on",hold);$("#hd").setAttribute("aria-pressed",hold);if(!hold)sus.splice(0).forEach(x=>x.rel())};$("#fz").onclick=frzToggle;$("#pa").onclick=panic;$("#vw").onclick=()=>{const v=$("#app").classList.toggle("v");$("#vw").classList.toggle("on",v);$("#vw").setAttribute("aria-pressed",v)};
+$("#hd").onclick=()=>{hold=!hold;$("#hd").classList.toggle("on",hold);$("#hd").setAttribute("aria-pressed",hold);if(!hold)sus.splice(0).forEach(x=>x.rel())};$("#fz").onclick=frzToggle;$("#pu").onclick=pcToggle;$("#pa").onclick=panic;$("#vw").onclick=()=>{const v=$("#app").classList.toggle("v");$("#vw").classList.toggle("on",v);$("#vw").setAttribute("aria-pressed",v)};
 const KC={KeyA:0,KeyW:1,KeyS:2,KeyE:3,KeyD:4,KeyF:5,KeyT:6,KeyG:7,KeyY:8,KeyH:9,KeyU:10,KeyJ:11,KeyK:12,KeyO:13,KeyL:14,KeyP:15,Semicolon:16,Quote:17},CKEY={KeyZ:0,KeyX:1,KeyC:2,KeyV:3,KeyB:4,KeyN:5,KeyM:6};
 /* BT / TYPING KEYS: A..' piano row = single notes (drone when VOICING=DRONE); Z..M = 7 chords of C minor at the current octave; Caps Lock = hold; Space = panic; 1-6 = hit pads */
 const CHD=[["C MIN",0,[0,3,7]],["D DIM",2,[0,3,6]],["E♭ MAJ",3,[0,4,7]],["F MIN",5,[0,3,7]],["G MIN",7,[0,3,7]],["A♭ MAJ",8,[0,4,7]],["B♭ MAJ",10,[0,4,7]]],
