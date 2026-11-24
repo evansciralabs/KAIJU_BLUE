@@ -4,7 +4,7 @@
 <title>KAIJU-BLUE // DREAD ORGAN</title>
 <meta name="description" content="A dread organ and kaiju sound-design instrument. Play it, bounce it, share it.">
 <meta property="og:title" content="KAIJU-BLUE // DREAD ORGAN">
-<meta name="theme-color" content="#07080d"><meta name="kj-build" content="B17.0 · NOV 23">
+<meta name="theme-color" content="#07080d"><meta name="kj-build" content="B17.1 · NOV 24">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3l11 6v14l-11 6-11-6V9z' fill='none' stroke='%2306b6d4' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ff3b6b'/%3E%3C/svg%3E">
 <style>
@@ -1252,6 +1252,37 @@ let rdT;function RD(k,l,x){const r=$("#rd");r.textContent=l+"  "+(FM[k]?FM[k](x)
 /* OUT: bounce + oneshot (capped by LEN, faded if capped), takes, monsters, patch slots + files */
 let armed=false,rec=null,tkn=0,len=12,scn=1,tkc=0,mono=0;const takes=[],bt={},p2=n=>String(n).padStart(2,"0");try{scn=cl(+localStorage.getItem("kj_sc")||1,1,99)|0;mono=cl(+localStorage.getItem("kj_mono")||0,0,2)|0}catch(_){}
 /* SAVE = direct download, always (no share sheet). Inside a host page that blocks downloads, a real link is offered too: right-click / press-and-hold > Save link as. */
+/* SHARED TAKE STORE (new in B17.1): every finished take is also kept in the browser's take store, where OSSUARY (same address, same origin) can pick it up; what OSSUARY processes comes back as an extra chip, the original untouched. */
+/* SRCD take store: one IndexedDB ("srcd-takes") and one BroadcastChannel ("srcd-takes") shared by every tool opened from the same origin (same scheme, host and port).
+   A record: { id, from:'kaiju'|'ossuary', parent, k, name, blob, sec, sr, ch, patch, preset, tag, t }. Each side keeps its own newest 6, as many of them as fit in 400 MB (the newest always stays). Nothing leaves the device. */
+const TS=(()=>{
+  const DB='srcd-takes', ST='takes', KEEP=6, BUDGET=400*1048576; let db=null, bc=null; const subs=[];
+  const open=()=>db?Promise.resolve(db):new Promise((res,rej)=>{
+    if(typeof indexedDB==='undefined'||!indexedDB) return rej(new Error('this browser has no take store here'));
+    let q; try{ q=indexedDB.open(DB,1); }catch(e){ return rej(e); }
+    q.onupgradeneeded=()=>{ q.result.createObjectStore(ST,{keyPath:'id'}); };
+    q.onsuccess=()=>{ db=q.result; db.onversionchange=()=>{ try{ db.close(); }catch(_){} db=null; }; db.onclose=()=>{ db=null; }; res(db); };
+    q.onerror=()=>rej(q.error||new Error('take store failed to open')); q.onblocked=()=>rej(new Error('take store is blocked by another tab'));
+  });
+  const run=(mode,fn)=>open().then(d=>new Promise((res,rej)=>{
+    const t=d.transaction(ST,mode), r=fn(t.objectStore(ST));
+    t.oncomplete=()=>res(r&&r.result); t.onerror=()=>rej(t.error||new Error('take store error')); t.onabort=()=>rej(t.error||new Error('take store write refused (storage full?)'));
+  }));
+  const post=m=>{ try{ if(!bc&&typeof BroadcastChannel==='function'){ bc=new BroadcastChannel('srcd-takes'); bc.onmessage=e=>subs.forEach(f=>{ try{ f(e.data); }catch(_){} }); } if(bc) bc.postMessage(m); }catch(_){} };
+  const list=()=>run('readonly',s=>s.getAll()).then(a=>(a||[]).sort((x,y)=>y.t-x.t));
+  const del=id=>run('readwrite',s=>s.delete(id));
+  const prune=from=>list().then(a=>{ let by=0, full=false; return Promise.all(a.filter(r=>r.from===from).filter((r,i)=>{ by+=(r.blob&&r.blob.size)||0; if(i>=KEEP||(i>0&&by>BUDGET)) full=true; return full; }).map(r=>del(r.id))); }).catch(()=>{});
+  return {
+    put:rec=>run('readwrite',s=>s.put(rec)).then(()=>prune(rec.from)).then(()=>{ post({t:'put',id:rec.id,from:rec.from}); return rec.id; }),
+    get:id=>run('readonly',s=>s.get(id)),
+    list:list,
+    on:f=>{ subs.push(f); post({t:'hello'}); if(typeof document!=='undefined') document.addEventListener('visibilitychange',()=>{ if(!document.hidden) try{ f({t:'sync'}); }catch(_){} }); }
+  };
+})();
+const tsId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const tsPr=[];
+const tsKeep=(t,sr,mo,nc,sc,tk,pnN)=>{try{TS.put({id:tsId("k"),from:"kaiju",parent:null,k:t.k,name:t.n,blob:t.b,sec:t.d,sr:sr,ch:mo===1?1:mo===2?6:Math.min(2,nc),scene:sc,take:tk,patch:pnN,t:Date.now()}).catch(()=>{})}catch(_){}};
+const tsPull=()=>{try{TS.list().then(a=>{tsPr.length=0;a.filter(x=>x.from==="ossuary"&&x.blob).slice(0,4).forEach(x=>tsPr.push({k:(x.k||"")+" OSS",d:x.sec,b:x.blob,n:x.name}));if(tkp)drawTakes()}).catch(()=>{})}catch(_){}};
 const FRAMED=(()=>{try{return window.self!==window.top}catch(_){return true}})();let svU=null,svT=0;
 const dl=(blob,name)=>{try{if(svU)URL.revokeObjectURL(svU);const u=svU=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;a.rel="noopener";a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),1000);
  if(FRAMED)svTray(u,name,blob.size);else{toast("DOWNLOADING "+name);setTimeout(()=>{if(svU===u){URL.revokeObjectURL(u);svU=null}},120000)}}catch(e){showErr("SAVE FAILED ("+(e&&e.name)+")")}};
@@ -1312,10 +1343,10 @@ function recStop(now){if(!rec)return;const r=rec;
  if(r.nd){r.fin=end;r.nd.port.postMessage("stop");setTimeout(end,400)}else end()}
 function recFin(r){if(!r.ch[0].length)return;edge(r.ch,Math.floor(.008*r.sr),Math.floor(.03*r.sr));if(r.cap)fade(r.ch,Math.floor(1.5*r.sr));
  const tk=++tkc,k=(r.one?"S":"T")+tk,pnN=(r.tag||pnm||"TAKE").toUpperCase().replace(/[^A-Z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"TAKE",ds=new Date(Date.now()-r.t*1000),mo=r.md,sc=scn;toast((r.cap&&!r.one?"REC LIMIT "+Math.floor(r.lim/60)+":"+p2(r.lim%60)+" · ":"")+"RENDERING "+xSum()+(mo===1?" MONO":mo===2?" 5.1":""));
- mkWav(r.ch,r.sr,CFG.x.r||r.sr,mo,{kind:r.one?"ONESHOT":"TAKE",patch:pnN,scene:sc,take:tk,date:ds.getFullYear()+"-"+p2(ds.getMonth()+1)+"-"+p2(ds.getDate()),time:p2(ds.getHours())+":"+p2(ds.getMinutes())+":"+p2(ds.getSeconds()),sec:ds.getHours()*3600+ds.getMinutes()*60+ds.getSeconds()},{b:CFG.x.b,k:CFG.x.k}).then(o=>{takes.unshift({k,c:r.cap,n:"KAIJU_"+pnN+"_SC"+p2(sc)+"_T"+p2(tk)+"_"+(r.one?"OS":"TK")+"_"+o.sr/1000+"k"+(o.bt===32?"32f":o.bt)+(mo===1?"_MONO":mo===2?"_51":"")+".wav",b:o.b,d:r.t});let dr="";if(takes.length>4){let i=takes.length-1;for(let j=takes.length-1;j>0;j--)if(takes[j].sv){i=j;break}if(!takes[i].sv)dr=" · "+takes[i].k+" DROPPED UNSAVED";takes.splice(i,1)}drawTakes();toast("READY "+k+dr+o.msg)}).catch(()=>showErr("RENDER FAILED"))}
+ mkWav(r.ch,r.sr,CFG.x.r||r.sr,mo,{kind:r.one?"ONESHOT":"TAKE",patch:pnN,scene:sc,take:tk,date:ds.getFullYear()+"-"+p2(ds.getMonth()+1)+"-"+p2(ds.getDate()),time:p2(ds.getHours())+":"+p2(ds.getMinutes())+":"+p2(ds.getSeconds()),sec:ds.getHours()*3600+ds.getMinutes()*60+ds.getSeconds()},{b:CFG.x.b,k:CFG.x.k}).then(o=>{takes.unshift({k,c:r.cap,n:"KAIJU_"+pnN+"_SC"+p2(sc)+"_T"+p2(tk)+"_"+(r.one?"OS":"TK")+"_"+o.sr/1000+"k"+(o.bt===32?"32f":o.bt)+(mo===1?"_MONO":mo===2?"_51":"")+".wav",b:o.b,d:r.t});tsKeep(takes[0],o.sr,mo,r.ch.length,sc,tk,pnN);let dr="";if(takes.length>4){let i=takes.length-1;for(let j=takes.length-1;j>0;j--)if(takes[j].sv){i=j;break}if(!takes[i].sv)dr=" · "+takes[i].k+" DROPPED UNSAVED";takes.splice(i,1)}drawTakes();toast("READY "+k+dr+o.msg)}).catch(()=>showErr("RENDER FAILED"))}
 
 function oneArm(){gvNS=0;lastHit=Math.max(lastHit,ac.currentTime);if(fm!==1){fm=1;apply()}if(armed){armed=false;bt.one.classList.remove("on");bt.one.textContent="ONESHOT";recStart(1)}}
-let tkp;const drawTakes=()=>{tkp.innerHTML="";PW.TAKES[0].hidden=!takes.length;takes.forEach(t=>chip(tkp,t.k+" "+t.d.toFixed(1)+"S"+(t.c?"*":""),0,()=>{t.sv=1;dl(t.b,t.n)}))};
+let tkp;const drawTakes=()=>{tkp.innerHTML="";PW.TAKES[0].hidden=!(takes.length||tsPr.length);takes.forEach(t=>chip(tkp,t.k+" "+t.d.toFixed(1)+"S"+(t.c?"*":""),0,()=>{t.sv=1;dl(t.b,t.n)}));tsPr.forEach(p=>chip(tkp,p.k+" "+p.d.toFixed(1)+"S",0,()=>dl(p.b,p.n)))};
 const slots=()=>{try{return JSON.parse(localStorage.getItem("kj_slots"))||[]}catch(_){return[]}};let sm=0;const sb=[];const drawSl=()=>{const a=slots();sb.forEach((b,i)=>b.classList.toggle("on",!!a[i]))};
 {let g=pn(cols.OUT[0],"BOUNCE");g.classList.add("g2");bt.rec=chip(g,"REC",0,()=>rec?recStop():recStart(0));
  bt.one=chip(g,"ONESHOT",0,b=>{armed=!armed;b.classList.toggle("on",armed);b.textContent=armed?"ARMED":"ONESHOT"});
@@ -1342,7 +1373,7 @@ const slots=()=>{try{return JSON.parse(localStorage.getItem("kj_slots"))||[]}cat
  suUI=()=>{const x=CFG.x;if(xB)xB.textContent=xLab();rB.textContent="RATE "+xRate(x.r);dB.textContent="DEPTH "+(x.b===32?"32F":x.b);kB.textContent="PEAK "+XK[x.k];eR.textContent="ENGINE "+ENG_R[erI()][0];eB.textContent="BUFFER "+ENG_B[ebI()][0];oB.textContent="OUT "+(CFG.sink?CFG.sinkN||"DEVICE":"DEFAULT");iB.textContent=engInfo();vis(aB,engPend())};
  suToggle=()=>{const w=PW.SETUP[0];w.hidden=!w.hidden;CFG.so=w.hidden?0:1;cfgSave();suUI();toast(w.hidden?"SETUP CLOSED":"SETUP: EXPORT AND ENGINE")};suUI()}
  g=pn(cols.OUT[0],"MONSTER");chip(g,"PREV",0,()=>pstep(-1)).setAttribute("aria-label","PREVIOUS STOCK PRESET");chip(g,"NEXT",0,()=>pstep(1)).setAttribute("aria-label","NEXT STOCK PRESET");chip(g,"RANDOM",0,()=>go(0)).setAttribute("aria-label","RANDOM KAIJU");chip(g,"DEFAULT",0,toDefault).setAttribute("aria-label","DEFAULT PATCH AND KAIJU");chip(g,"UNDO",0,()=>undo());{const mb=chip(g,"HIT "+HIMN[HIM],HIM>0,()=>{HIM=(HIM+1)%3;mb.textContent="HIT "+HIMN[HIM];mb.classList.toggle("on",HIM>0);try{localStorage.setItem("kj_him",HIM)}catch(_){}hcache.clear();hcrx.clear();hGen++;if(HIM&&ready)hPre();toast(["HIT SYNTH: EVERY HIT IS BUILT AT ITS PITCH","HIT TAPE: ONE TAKE, SPEED AND PITCH MOVE TOGETHER","HIT CRUNCH: 26K 12-BIT TAKE, NO INTERPOLATION"][HIM])});mb.setAttribute("aria-label","HIT PITCH MODE")}
- tkp=pn(cols.OUT[0],"TAKES");PW.TAKES[0].hidden=true;
+ tkp=pn(cols.OUT[0],"TAKES");PW.TAKES[0].hidden=true;try{TS.on(tsPull);tsPull()}catch(_){}
  KB(cols.OUT[1],"MASTER",["vol","hp"]);
  {const q=pn(cols.OUT[1],"ACCESS");let ls={};try{ls=JSON.parse(localStorage.getItem("kj_a11y"))||{}}catch(_){}
  const sv=()=>{try{localStorage.setItem("kj_a11y",JSON.stringify(ls))}catch(_){}},ap=()=>{document.documentElement.classList.toggle("lt",!!ls.lt);CALM=RM||!!ls.calm;if(CALM){hero.style.transform="";hero.style.filter=""}};
