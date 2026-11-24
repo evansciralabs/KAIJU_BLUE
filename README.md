@@ -14,6 +14,7 @@ KAIJU-BLUE is a browser instrument built on the Web Audio API. Each kaiju plate 
 - **Four-panel interface.** `PLAY` / `TONE` / `FX` / `OUT` tabs with draggable hex knobs and the full keyboard (octave up/down, HOLD, PANIC).
 - **24 kaiju plates.** Named patch presets (`K-01` … `K-24`), each with its own plate art and signal signature.
 - **Performance pads.** One-shot hits and a bounce recorder that renders your take to a downloadable audio file.
+- **Shared takes with OSSUARY.** Every finished take is also kept in your browser's take store. Open OSSUARY from the same address, pick a take, process it, and the result comes back here as an `OSS` chip. Your original take is never changed.
 - **Radar scope HUD.** Live signal analysis — range, bearing, tail length, voice count, RUNAWAY/FLUSH warnings.
 - **Zero dependencies.** No CDN, no framework, no assets fetched from the network (plate JPGs are local).
 - **It remembers you.** Patch state persists in `localStorage`.
@@ -33,6 +34,15 @@ This repo publishes itself: Settings → Pages → Deploy from branch → `main`
 
 The app expects `1.jpg` … `24.jpg` (unpadded, lowercase) in the same directory as `index.html`. Missing plates are tolerated — the HUD keeps running — but the organ wants its kaiju.
 
+## Shared takes (with OSSUARY)
+
+KAIJU-BLUE and OSSUARY share takes through the browser (IndexedDB and BroadcastChannel). Nothing leaves your device.
+
+- Both files must be opened from the **same address** (same origin). On GitHub Pages, that means the same account with no custom domain on one of them.
+- Each tool keeps its newest 6 takes, up to 400 MB.
+- Clear the store from OSSUARY's TAKES list.
+- Without OSSUARY, KAIJU-BLUE works exactly as before.
+
 ## Free to use — including commercially
 
 KAIJU-BLUE is MIT-licensed. Sound designers and studios: use it to craft sounds for commercial releases, embed it in your toolchain, modify it, ship it. No permission needed, no fee. The only requirement is that the LICENSE file travels with the code — that's where the credit lives.
@@ -42,6 +52,12 @@ KAIJU-BLUE is MIT-licensed. Sound designers and studios: use it to craft sounds 
 ## Browser support
 
 Modern browsers with Web Audio (Chrome, Edge, Firefox, Safari). Audio starts after your first interaction — browsers require a gesture to unlock sound; the power button in the corner is the ignition.
+
+## Support
+
+KAIJU-BLUE is free. If it helps your work and you'd like to support what comes next, you can send a tip through PayPal: 
+
+https://www.paypal.me/LastHitLeft/5
 
 ## License
 
