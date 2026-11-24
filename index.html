@@ -4,7 +4,7 @@
 <title>KAIJU-BLUE // DREAD ORGAN</title>
 <meta name="description" content="A dread organ and kaiju sound-design instrument. Play it, bounce it, share it.">
 <meta property="og:title" content="KAIJU-BLUE // DREAD ORGAN">
-<meta name="theme-color" content="#07080d"><meta name="kj-build" content="B16.9 · NOV 23">
+<meta name="theme-color" content="#07080d"><meta name="kj-build" content="B17.0 · NOV 23">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3l11 6v14l-11 6-11-6V9z' fill='none' stroke='%2306b6d4' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ff3b6b'/%3E%3C/svg%3E">
 <style>
@@ -50,7 +50,7 @@ button{font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;
 .kn:hover{filter:drop-shadow(0 0 7px var(--c))}
 .chip{display:block;width:100%;padding:5px 8px;border:1px solid rgba(169,198,210,.5);background:rgba(2,8,14,.18);color:var(--tx);font-weight:700;font-size:10px;text-align:center;transition:background .12s,box-shadow .12s}
 .chip:hover{border-color:var(--c);box-shadow:0 0 8px var(--c)}.chip.on{background:rgba(6,182,212,.3);border-color:var(--c);color:#fff;box-shadow:0 0 10px rgba(6,182,212,.45)}
-.hits{grid-column:1/4;grid-row:3;display:flex;gap:6px;margin-bottom:6px}
+.hits{grid-column:1/4;grid-row:3;display:flex;gap:6px;margin-bottom:6px}.chip.pad.hoct{flex:.85;border-color:rgba(255,255,255,.28);color:#cfd8e6;background:transparent}.chip.pad.hoct.on{border-color:rgba(255,59,107,.7);color:#fff;background:rgba(255,59,107,.2)}
 .chip.pad{flex:1;padding:7px 2px;font-size:9px;border-color:rgba(255,59,107,.7);color:#ffc2d0;background:rgba(255,59,107,.06)}.chip.pad:hover,.chip.pad:active{background:rgba(255,59,107,.45);color:#fff;box-shadow:0 0 12px var(--hot)}
 .kb{grid-column:1/4;grid-row:4;justify-self:center;width:var(--kbw);position:relative;display:flex;height:var(--kbh);margin:0 0 12px;touch-action:none}
 .wk,.bk{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
@@ -529,8 +529,33 @@ function up(s,id){const S=src[s];if(S){S.delete(id);if(S.size)return}release(s)}
 const releaseAll=()=>{for(const id in ptrS)delete ptrS[id];kd.clear();for(const k in mn)delete mn[k];Object.keys(held).forEach(s=>release(+s))};
 /* HITS */
 const BQh=(ty,f,q)=>BQ(ty,f,q);
-const impact=(t,v=1)=>{const e=t+3,g=env(t,.003,e,.55*v),o=O("sine",LITE?200:110,t,e);o.frequency.exponentialRampToValueAtTime(LITE?75:32,t+.5);o.connect(g);
- const n=NZ(t,t+1.2),f=BQ("lowpass",900,.7);f.frequency.setValueAtTime(900,t);f.frequency.exponentialRampToValueAtTime(90,t+1);n.connect(f);f.connect(env(t,.002,t+1.2,.3*v))};
+/* IMPACT by material: every kaiju lands on (or breaks) something of its own. A material is a recipe of layers, each [..] or absent:
+ th thump [Hz from, Hz to, s, level] (the body blow; phones get it an octave up)   bd body noise [lowpass from, to, s, level]   ck crack [highpass Hz, s, level] (the first few ms)
+ cr crunch [Hz, Q, s, grains/s, level] (concrete or ice breaking: a dense burst of grains that thins out)   db debris [Hz, Q, s, bits/s, level] (what falls after, starting late and sparse)
+ rb rumble [lowpass Hz, s, level] (the ground)   mp struck metal [Hz, decay s, level] (plate modes)   gr groan [Hz, s, level] (steel bending)   ch frost chirps [count, Hz from, Hz to, level]
+ sp spray or hiss [highpass Hz, s, level]   zp zap [Hz from, Hz to, s, level]. lv trims each material to the same loudness as the plain thud it replaces. sc scales every frequency (octave shift of the hit). */
+const MT={STONE:{lv:1.06,th:[110,32,.5,.5],bd:[900,90,1.2,.26],ck:[1800,.012,.45],cr:[1300,1.1,.75,90,1.2],db:[3200,1.4,2.6,20,.8],rb:[150,2.6,.32]},
+ METAL:{lv:0.87,th:[95,36,.45,.45],bd:[1200,120,.8,.16],ck:[2600,.008,.42],mp:[150,2.4,.14],gr:[62,2.6,.1],db:[4800,3,1.7,12,.6]},
+ ICE:{lv:1.05,th:[105,40,.4,.42],ck:[3200,.006,.55],ch:[9,6200,260,.3],cr:[2700,2,.5,120,1],db:[6200,4,1.9,24,.7],rb:[120,1.6,.2]},
+ WATER:{lv:.78,th:[80,28,.6,.55],bd:[600,70,1.5,.34],sp:[1600,2.4,.4],db:[2600,1.2,2.6,26,.5],rb:[100,3,.3]},
+ EARTH:{th:[95,30,.55,.55],bd:[700,80,1.4,.34],sp:[3600,2.8,.12],cr:[850,1,.55,60,1],rb:[120,2.8,.4]},
+ WOOD:{lv:1.19,th:[130,45,.35,.42],ck:[2300,.01,.36],cr:[1900,1.8,.6,140,1.2],db:[2900,2.5,1.5,16,.7],rb:[160,1.4,.2]},
+ FLESH:{th:[90,30,.5,.58],bd:[500,60,1,.4],cr:[700,1.4,.45,70,.9],sp:[900,.8,.12],rb:[110,1.8,.25]},
+ GLASS:{lv:1.27,th:[120,40,.35,.42],ck:[3600,.006,.5],db:[5600,6,2.3,28,1.1],cr:[3100,3,.4,150,.9],rb:[130,1.5,.22]},
+ ENERGY:{lv:1.02,th:[150,30,.5,.48],zp:[2600,60,.7,.2],ck:[2000,.01,.36],sp:[6000,1.2,.1],rb:[90,2,.3]}};
+const imGr=(t,[hz,q,s,rt,lv],v,d0,sc)=>{const e=t+d0+s,n=NZ(t,e+.1),b=BQ("bandpass",NY(hz*sc),q),g=G_(0),o=G_(lv*v),cap=LITE?90:260;n.connect(b);b.connect(g);g.connect(o);o.connect(hbus);jan.push([o,e+.6]);
+ let x=t+d0;for(let i=0;i<cap&&x<e;i++){const u=(x-t-d0)/s,a=(1-u)*(1-u)*rr(.25,1);g.gain.setValueAtTime(a,x);g.gain.setTargetAtTime(0,x+.0005,rr(.0012,.007));x+=rr(.3,1.7)/(rt*Math.exp(-2.4*u)+1)}},
+ impact=(t,v=1,mt,sc=1)=>{const M=MT[mt]||MT.STONE,Y=LITE?1.9:1;v*=M.lv||1;
+ if(M.th){const[a,b2,d,l]=M.th,e=t+3,g=env(t,.003,e,l*v),o=O("sine",Math.max(40,a*Y*sc),t,e);o.frequency.exponentialRampToValueAtTime(Math.max(24,b2*Y*sc),t+d);o.connect(g)}
+ if(M.bd){const[a,b2,d,l]=M.bd,n=NZ(t,t+d),f=BQ("lowpass",NY(a*sc),.7);f.frequency.setValueAtTime(NY(a*sc),t);f.frequency.exponentialRampToValueAtTime(b2*sc,t+d*.85);n.connect(f);f.connect(env(t,.002,t+d,l*v))}
+ if(M.ck){const[a,d,l]=M.ck,n=NZ(t,t+d*8),f=BQ("highpass",NY(a*sc),.7),g=env(t,.0005,t+d*6,l*v);n.connect(f);f.connect(g)}
+ if(M.cr)imGr(t,M.cr,v,0,sc);if(M.db)imGr(t,M.db,v,.09,sc);
+ if(M.rb){const[a,d,l]=M.rb,n=NZ(t,t+d),f=BQ("lowpass",a*sc,.7);n.connect(f);f.connect(env(t,.06,t+d,l*v))}
+ if(M.mp){const[a,d,l]=M.mp,g=G_(l*v);g.connect(hbus);jan.push([g,t+d*5]);[[1,1],[1.003,.6],[2.32,.7],[4.25,.45],[6.63,.3],[9.38,.18]].forEach(([m,am],i)=>{const f=a*m*sc;if(f>NY(16e3))return;const o=O("sine",f,t,t+d*4),og=ac.createGain();og.gain.setValueAtTime(.0001,t);og.gain.linearRampToValueAtTime(am,t+.002);og.gain.setTargetAtTime(0,t+.002,d/(1+i*.6));o.connect(og);og.connect(g)})}
+ if(M.gr){const[a,d,l]=M.gr,o=O("sawtooth",a*sc,t+.15,t+.15+d),f=BQ("lowpass",500*sc,1),g=env(t+.15,d*.35,t+.15+d,l*v);o.frequency.exponentialRampToValueAtTime(a*.82*sc,t+.15+d);const w=O("sine",.7,t+.15,t+.15+d),wg=G_(a*.04*sc);w.connect(wg);wg.connect(o.frequency);o.connect(f);f.connect(g)}
+ if(M.ch){const[nc,a,b2,l]=M.ch,o=O("sine",a*sc,t,t+.9),g=G_(0),og=G_(l*v);o.connect(g);g.connect(og);og.connect(hbus);jan.push([og,t+1.2]);let x=t+.005;for(let i=0;i<nc;i++){const cd=rr(.025,.07);o.frequency.setValueAtTime(NY(a*sc*rr(.7,1.2)),x);o.frequency.exponentialRampToValueAtTime(b2*sc*rr(.8,1.3),x+cd);g.gain.setValueAtTime(0,x);g.gain.linearRampToValueAtTime(rr(.4,1),x+.0015);g.gain.setTargetAtTime(0,x+.002,cd*.3);x+=cd+rr(.004,.06);if(x>t+.85)break}}
+ if(M.sp){const[a,d,l]=M.sp,n=NZ(t,t+d),f=BQ("highpass",NY(a*sc),.7);n.connect(f);f.connect(env(t,.02,t+d,l*v))}
+ if(M.zp){const[a,b2,d,l]=M.zp,o=O("sawtooth",a*sc,t,t+d),f=BQ("lowpass",NY(5000*sc),.7);o.frequency.exponentialRampToValueAtTime(b2*sc,t+d);o.connect(f);f.connect(env(t,.002,t+d,l*v))}};
 /* KAIJU VOICES. Every plate is a creature with its own call family (KV, keyed by plate number; DV fills the gaps). A SCREAM or ROAR trigger picks one of that creature's call gestures (GS / GR: pitch + loudness shapes; never the same one twice running; about one call in ten is its rare surprise), then jitters pitch, length, grit and formants a little, so repeats are clearly the same animal but never the same take. Rapid calls build AGITATION (higher, grittier, faster). A call is the vocal voice (saw stack + growl + formants; bl = its level, 0 = none) plus optional layers XS (scream) / XR (roar). Layers follow the gesture's pitch contour, so one gesture table serves every family:
    N noise band (hz q g; pw = how far the band follows the contour; am/ad/aw = rattle, gargle or wing-beat AM rate, depth, wave)   K click train (r rate, hz q g, j jitter, a loudness scatter; pw 1 = rate follows contour)   B struck partials (pt [[ratio, gain, decay x, fm ratio, fm index]], st [min, max count, start, end, first, last level, accel], dc decay s)   P sustained pipes / hum partials (h [[harmonic, gain]], tr/td tremulant)   F FM whistle or sweep (r ratio, fr/fi FM ratio + index, vb/vd vibrato, qz = stepped semitone glide, steps per second)   T thump (hz, dr drop, dc decay, ts [[time, level]], sd saturation = harmonics so small speakers hear it, nz [Hz, q, level, decay] = noise thud on the hit).   Shared layer keys: g level, ps pitch scale. K also takes kd = click length.
    Profile keys. SCREAM voice: p pitch Hz, x rasp drive, g growl Hz, gd growl depth, gt growl wave, d length s, c chest voice, o upper voice (ob = its ratio), b detune ratio, vb/vd vibrato Hz and depth, n noise, vs voice stack [[ratio, gain, wave]], fs formant Hz list. ROAR voice: q pitch Hz, y rasp drive, h growl Hz, hd, ht, e length s, v vowel 0..1 (AH to OO to EE), s sub level, r detune ratio, m noise, rs voice stack. Shared: f formant scale (below 1 = bigger body), nc noise colour, lp lowpass Hz (0 = off), bc [levels per unit, wet, highpass Hz] = bit-crushed copy of the voice (digital grit; absent = off), sg / rg gesture lists (first = signature), lt per-call level trims {S:{gesture:gain},R:{}}, sx / rx rare gestures, sn / rn call names shown on the HUD, bl [scream, roar] vocal level, lv loudness trims (all measured offline so every creature sits at the level of the original two), k category. */
@@ -558,7 +583,13 @@ const GS=[{n:"SWOOP",l:.9732,c:[[0,1],[.2,2.92],[1,1.62]],a:[[.02,1],[.36,1],[1,
  {n:"GLIDE",l:1.019,c:[[0,1.5],[1,2.3]],a:[[.15,1],[.7,1],[1,0]],d:1.25},
  {n:"CLUSTER",l:.9917,c:[[0,2],[.12,2.8],[.28,2.1],[.32,2],[.44,3],[.6,2.2],[.64,2],[.78,3.2],[1,1.8]],a:[[.01,1],[.2,1],[.26,.1],[.34,1],[.5,1],[.58,.1],[.66,1],[.8,1],[1,0]]},
  {n:"PEAL",l:1.124,c:[[0,1],[1,1.26]],a:[[.03,1],[.7,1],[1,0]],d:1.3},
- {n:"STEADY",l:1.166,c:[[0,1],[1,1.03]],a:[[.1,1],[.8,1],[1,0]],d:1.3}],
+ {n:"STEADY",l:1.166,c:[[0,1],[1,1.03]],a:[[.1,1],[.8,1],[1,0]],d:1.3},
+ {n:"SKREE-ONK",l:1,c:[[0,2.5],[.08,3.05],[.44,2.85],[.47,1.25],[.55,1.08],[1,.82]],a:[[.02,1],[.43,1],[.47,.7],[.53,1],[.85,.85],[1,0]],d:1.25},
+ {n:"CACKLE",l:1,c:[[0.005,2.60],[0.060,2.75],[0.116,2.49],[0.171,2.64],[0.227,2.38],[0.282,2.53],[0.338,2.27],[0.393,2.42],[0.449,2.16],[0.504,2.31],[0.561,2.05],[0.616,2.20],[0.672,1.94],[0.727,2.09],[0.783,1.83],[0.838,1.98],[0.894,1.72],[0.949,1.87],[1,1.5]],a:[[0.012,1],[0.085,.08],[0.123,1],[0.196,.08],[0.234,1],[0.307,.08],[0.345,1],[0.418,.08],[0.456,1],[0.529,.08],[0.568,1],[0.641,.08],[0.679,1],[0.752,.08],[0.790,1],[0.863,.08],[0.901,1],[0.974,.08],[1,0]],d:1.15},
+ {n:"FLYBY",l:1,c:[[0,1.3],[.42,1.2],[.58,.93],[1,.84]],a:[[.05,.18],[.45,1],[.58,1],[1,0]],d:1.3},
+ {n:"BACKWARD",l:1,c:[[0,1.1],[.85,2.7],[1,2.9]],a:[[.35,.12],[.88,1],[.97,1],[1,0]],d:1.1},
+ {n:"BREAK",l:1,c:[[0,1.5],[.28,2.3],[.3,1.12],[.5,1.3],[.52,2.5],[.8,2.2],[1,1.5]],a:[[.03,1],[.8,1],[1,0]],d:1.1},
+ {n:"SHRILL",l:1,c:[[0,1],[.08,1.65],[.7,1.8],[1,1.3]],a:[[.04,1],[.72,1],[1,0]],d:1.15}],
 GR=[{n:"BELLOW",l:.9658,c:[[0,1],[1,.56]],a:[[.05,1],[.4,1],[1,0]]},
  {n:"SWELL",l:.9618,c:[[0,.8],[.25,1.1],[1,.5]],a:[[.25,1],[.5,1],[1,0]],d:1.1},
  {n:"BARK",l:.9527,c:[[0,1],[.3,.85],[.38,1.1],[.7,.6],[1,.5]],a:[[.04,1],[.27,1],[.36,.15],[.42,1],[.6,1],[1,0]],d:.9},
@@ -574,109 +605,136 @@ GR=[{n:"BELLOW",l:.9658,c:[[0,1],[1,.56]],a:[[.05,1],[.4,1],[1,0]]},
  {n:"PURR",l:1.646,c:[[0,.7],[1,.65]],a:[[.3,.6],[.7,.6],[1,0]],d:1.3},
  {n:"GROWL RISE",l:.977,c:[[0,.5],[.7,1],[1,1.1]],a:[[.2,.8],[.8,1],[1,0]]},
  {n:"TOLL",l:.9217,c:[[0,1],[1,.96]],a:[[.03,1],[.7,1],[1,0]],d:1.25},
- {n:"DIRGE",l:.9388,c:[[0,1],[.3,.94],[.35,.84],[.65,.8],[.7,.7],[1,.68]],a:[[.1,1],[.8,1],[1,0]],d:1.25}];
+ {n:"DIRGE",l:.9388,c:[[0,1],[.3,.94],[.35,.84],[.65,.8],[.7,.7],[1,.68]],a:[[.1,1],[.8,1],[1,0]],d:1.25},
+ {n:"ONK",l:1,c:[[0,1.3],[.1,1.48],[.6,1.2],[1,.72]],a:[[.02,1],[.5,1],[1,0]],d:1.1},
+ {n:"BACKMASK",l:1,c:[[0,.55],[.8,1.05],[.95,1.18],[1,1.18]],a:[[.3,.1],[.86,1],[.96,1],[1,0]],d:1.15},
+ {n:"DIAPHONE",l:1,c:[[0,1],[.7,1.02],[.77,.6],[1,.56]],a:[[.06,1],[.71,1],[.79,.9],[1,0]],d:1.3},
+ {n:"INHALE",l:1,c:[[0,.6],[1,1.4]],a:[[.45,.5],[.9,1],[1,0]],d:1.1},
+ {n:"TRUMPET",l:1,c:[[0,1],[.1,2.5],[.6,2.35],[1,1.6]],a:[[.02,1],[.6,1],[1,0]]},
+ {n:"THREE-PART",l:1,c:[[0,1],[.1,1.3],[.17,.9],[.25,1.5],[.74,1.35],[.84,.8],[1,.6]],a:[[.02,1],[.12,1],[.18,.3],[.26,1],[.74,1],[.85,.4],[1,0]],d:1.45}];
 const DV={p:650,q:78,x:5,y:4,g:66,h:26,gd:.35,hd:.4,gt:"sine",ht:"sine",d:2.2,e:2.6,v:0,f:1,n:.22,m:.3,nc:1,b:1.012,r:1.011,s:.9,c:.5,o:.3,ob:2.01,vb:9,vd:.085,lp:0,sg:[0,1,2,3],rg:[0,1,2,3],sx:[5],rx:[6],sn:{},rn:{},bl:[1,1],lv:[1,1]};
 const KV={
- 1:{/*ABYSS CALL*/k:"ABYSSAL CALLER",p:260,q:52,x:2.5,y:2.5,g:7,h:8,d:3.2,e:3.8,v:.55,f:.8,n:.12,m:.2,nc:.6,b:1.006,r:1.004,s:1.1,c:.7,o:.15,vb:4,vd:.07,lp:2500,sg:[2,12,0,4],rg:[3,10,8,1],sx:[5],rx:[6],sn:{2:"KEEN",12:"SURFACE",0:"BREACH",4:"WARBLE",5:"SHUDDER"},rn:{3:"GARGLE",10:"CALL FROM BELOW",8:"BUBBLING",1:"TIDE",6:"SINK"},bl:[1.557,.9999],lv:[.9017,.8445],lt:{S:{12:.873}},
+ 1:{/*ABYSS CALL · LEVIATHAN SONG: a sea titan sings like a whale the size of a city. Long glides with register breaks, a moan whose vowel opens and closes, bubbles, and pulses felt more than heard (their harmonics carry the pitch on small speakers). Reflections off the sea floor */k:"ABYSSAL CALLER",mt:"WATER",p:230,q:44,x:2.2,y:2,g:7,h:9,d:3.6,e:4.2,v:.55,vw:[[0,.65],[.35,.1],[.7,.45],[1,.8]],fw:1.2,f:.78,n:.1,m:.18,nc:.6,b:1.006,r:1.004,s:1.2,c:.7,o:.12,vb:3.5,vd:.06,jt:[.008,12],lp:2400,ys:[[.42,.3,700],[.95,.2,450]],sg:[20,12,2,10],rg:[10,3,1,8],sx:[19],rx:[6],sn:{20:"KEEN BREAK",12:"SURFACE",2:"LAMENT",10:"SONG",19:"UPWELL"},rn:{10:"CALL FROM BELOW",3:"DEEP MOAN",1:"TIDE",8:"BUBBLING",6:"SINK"},bl:[1.3,1],lv:[0.9556,0.7664],lt:{S:{10:1.108,12:0.913},R:{6:0.937,10:1.06}},
   XS:[
-  {t:"N",hz:650,q:1.6,pw:.6,am:12,ad:.85,g:2.535},
-  {t:"F",r:4,fr:1.5,fi:.35,pw:.7,vb:5,vd:.012,g:.1192}],
+  {t:"H",r:2,w:"sine",fs:[[700,3,1],[1400,4,.5]],fp:1,vd:.012,vb:4,jt:[.01,8],g:1.4},
+  {t:"N",hz:650,q:1.6,pw:.6,am:12,ad:.85,g:2}],
   XR:[
-  {t:"N",hz:420,q:1.4,pw:.5,am:13,ad:.9,g:3.083},
-  {t:"T",hz:46,dr:.6,dc:.5,ts:[[0,1]],sd:3.5,g:.4315}]},
- 2:{/*DROWNED ORGAN*/k:"FIRE DRAGON",p:820,q:58,x:6,y:5,g:72,h:30,d:2.2,e:3,v:.1,f:.95,n:.3,m:.35,nc:1.2,b:1.02,r:1.015,s:1,c:.45,o:.35,vb:9,vd:.05,sg:[0,8,3,11],rg:[0,9,7,4],sx:[5],rx:[6],sn:{0:"SCREE",8:"SHRIEK",3:"TWIN SCREE",11:"STOOP",5:"FLARE"},rn:{0:"FIRE ROAR",9:"FLAME BLAST",7:"WIND-UP",4:"SCORCH",6:"SMOLDER"},bl:[1.018,.8845],lv:[1.007,.7901],lt:{R:{0:1.101,7:1.13,9:.9187,4:.9514}},
+  {t:"N",hz:380,q:1.4,pw:.5,am:11,ad:.9,g:2.6},
+  {t:"P",lo:1,h:[[2,1],[3,.8],[4,.6],[5,.45],[6,.3]],ps:.42,tr:1.6,td:.85,pw:.5,g:.5},
+  {t:"T",hz:38,dr:.7,dc:.7,ts:[[0,1],[.45,.7]],sd:3,g:.4}]},
+ 2:{/*DROWNED ORGAN · SHOWA DRAGON: the screams stay the 1960s Toho dragon screech. The roar is a 1990s composite: a low reptile growl in vocal fry, a big-cat snarl in the middle and a young elephant's trumpet on top, three animals in one throat. A burner of flame under it */k:"FIRE DRAGON",mt:"STONE",p:820,q:92,x:6,y:4,g:72,h:34,hd:.5,d:2.2,e:2.8,v:.05,vw:[[0,.0],[.6,.15],[1,.45]],f:.9,n:.3,m:.3,nc:1.2,b:1.02,r:1.015,s:.8,c:.45,o:.35,vb:9,vd:.05,sg:[0,8,3,11],rg:[20,21,9,7],sx:[5],rx:[4],sn:{0:"SCREE",8:"SHRIEK",3:"TWIN SCREE",11:"STOOP",5:"FLARE"},rn:{20:"TRUMPET ROAR",21:"THREE-THROAT",9:"FLAME BLAST",7:"WIND-UP",4:"SCORCH"},bl:[1,.75],lv:[1.026,0.6518],lt:{S:{8:0.867,11:1.072},R:{4:1.277,7:1.41,9:1.333,20:0.71,21:1.231}},
   XS:[
   {t:"K",r:50,hz:3600,q:.9,pw:.3,j:.8,a:.8,g:2.836},
   {t:"N",hz:1800,q:.6,pw:1,g:.5482}],
   XR:[
-  {t:"N",hz:700,q:.5,pw:1.5,g:.7962},
-  {t:"K",r:35,hz:2800,q:.9,pw:0,j:.9,a:.8,g:1.733},
-  {t:"T",hz:62,dr:.5,dc:.35,ts:[[0,1]],sd:3,g:.4814}]},
- 3:{/*IRON DREAD*/k:"WAR MACHINE",p:480,q:62,x:8,y:7,g:44,h:40,d:1.9,e:2.2,v:.1,f:.9,n:.18,m:.25,nc:1.3,b:1.498,r:1.498,s:1,c:.6,o:.45,ob:2.99,vb:11,vd:.04,sg:[0,13,3,9],rg:[0,4,2,12],sx:[5],rx:[6],sn:{0:"SCRAPE",13:"ARC BURST",3:"SHEAR",9:"SERVO WHINE",5:"OVERLOAD"},rn:{0:"GROWL",4:"SURGE",2:"PISTON",12:"IDLE",6:"DISCHARGE"},bl:[.9594,1.06],lv:[.9327,.8865],lt:{S:{5:1.099},R:{4:.9128,12:1.149}},
+  {t:"H",r:7.5,fs:[[1250,7,1],[2500,8,.7],[3600,9,.3]],fp:.4,x:3,jt:[.02,40],am:62,ad:.55,sp:[.06,.95],g:1.5},
+  {t:"K",r:28,hz:320,q:1.5,pw:.3,j:.25,a:.3,kd:3,g:5},
+  {t:"N",hz:900,q:.5,pw:1.2,am:7,ad:.4,g:.6},
+  {t:"T",hz:62,dr:.5,dc:.35,ts:[[0,1]],sd:3,g:.42}]},
+ 3:{/*IRON DREAD · MECHA: a war machine with a ring-modulated throat (the metallic, inhuman voice of 1960s to 2010s robot kaiju), servo whine stepping in semitones, hydraulic hiss, pistons and struck armour */k:"WAR MACHINE",mt:"METAL",p:480,q:74,x:6,y:5,g:44,h:40,d:1.9,e:2.4,v:.1,f:.9,n:.18,m:.25,nc:1.3,b:1.498,r:1.498,s:.9,c:.6,o:.45,ob:2.99,vb:11,vd:.03,rm:[43,.55],sg:[0,13,3,9],rg:[7,2,11,21],sx:[5],rx:[6],sn:{0:"SCRAPE",13:"ARC BURST",3:"SHEAR",9:"SERVO WHINE",5:"OVERLOAD"},rn:{7:"SPOOL-UP",2:"PISTON",11:"DOUBLE STAMP",21:"BATTLE CRY",6:"DISCHARGE"},bl:[.95,1],lv:[1.113,0.8642],lt:{S:{5:1.069,9:0.907},R:{7:1.13,11:0.908,21:0.93}},
   XS:[
-  {t:"B",pt:[[1,1,1],[2.76,.7,.6],[5.4,.5,.4],[8.93,.3,.3]],st:[1,3,0,.5,1,.6,1],dc:.5,ps:1.5,g:.4579},
-  {t:"K",r:90,hz:5500,q:1.2,pw:.5,j:.9,a:.9,g:2.776}],
+  {t:"F",r:2,fr:1,fi:0,pw:1,qz:14,g:.35},
+  {t:"B",pt:[[1,1,1],[2.76,.7,.6],[5.4,.5,.4],[8.93,.3,.3]],st:[1,3,0,.5,1,.6,1],dc:.5,ps:1.5,g:.42},
+  {t:"K",r:90,hz:5500,q:1.2,pw:.5,j:.9,a:.9,g:2.4}],
   XR:[
-  {t:"K",r:60,hz:4500,q:1,pw:0,j:.9,a:.9,g:1.22},
-  {t:"T",hz:70,dr:.5,dc:.25,ts:[[0,1],[.22,.6]],sd:3,nz:[320,1,.5,.05],g:.4729}]},
- 4:{/*PALE LEVIATHAN*/k:"VENT SERPENT",p:240,q:48,x:2.2,y:2.8,g:6,h:7,d:3,e:3.8,v:.55,f:.78,n:.35,m:.4,nc:.7,b:1.007,r:1.005,s:1.2,c:.8,o:.2,vb:3.5,vd:.06,lp:2800,sg:[8,11,1,2],rg:[3,10,1,15],sx:[5],rx:[6],sn:{8:"SHRILL",11:"VENT DROP",1:"VENT RISE",2:"SIREN HISS",5:"SNAP"},rn:{3:"MOAN",10:"EXHALE",1:"SURGE",15:"COIL",6:"SUBMERGE"},bl:[.3019,.9497],lv:[.794,.9704],lt:{S:{2:1.18,5:.944},R:{15:.903}},
+  {t:"F",r:4,fr:1,fi:0,pw:1,qz:10,g:.18},
+  {t:"N",hz:5200,q:.8,pw:0,am:2.2,ad:.8,aw:"square",g:.6},
+  {t:"K",r:7,hz:900,q:1,pw:.6,j:.05,a:.1,kd:4,g:4},
+  {t:"T",hz:70,dr:.5,dc:.25,ts:[[0,1],[.22,.6]],sd:3,nz:[320,1,.5,.05],g:.45}]},
+ 4:{/*PALE LEVIATHAN · SAND WORM: something vast moving under dry ground. No conventional roar: a suction inhale, a dry crackle of sand and twigs pouring off it, a fluttering throat far too delicate for its size, and the rumble under your feet. Dry, no reflections */k:"VENT SERPENT",mt:"EARTH",p:240,q:40,x:2,y:2.5,g:23,h:19,hd:.7,d:3,e:3.6,v:.8,f:.78,n:.55,m:.7,nc:.6,b:1.007,r:1.005,s:1.3,c:.6,o:.1,vb:3,vd:.03,lp:2600,sg:[2,11,1,12],rg:[19,10,3,1],sx:[5],rx:[6],sn:{2:"SIREN HISS",11:"VENT DROP",1:"VENT RISE",12:"FLUTTER",5:"SNAP"},rn:{19:"INHALE",10:"EXHALE",3:"UNDERGROUND",1:"SURGE",6:"SUBMERGE"},bl:[.25,.55],lv:[0.7977,1.075],lt:{S:{11:1.097,12:0.941}},
   XS:[
-  {t:"N",hz:3200,q:3.5,pw:.8,g:4.748},
-  {t:"F",r:8,fr:1.5,fi:.2,pw:.5,vb:9,vd:.015,g:.2531}],
+  {t:"N",hz:3200,q:3.5,pw:.8,g:4},
+  {t:"G",n:2,lo:180,hi:420,r:24,gl:.035,a:.4,pw:.5,g:.35},
+  {t:"K",r:60,hz:4200,q:.8,pw:0,j:.95,a:.95,g:1.6}],
   XR:[
-  {t:"N",hz:2600,q:1.2,pw:0,am:6,ad:.5,g:.3953},
-  {t:"N",hz:300,q:.6,pw:.5,g:.7439}]},
- 5:{/*AMBER ALARM*/k:"CHITIN SWARM",p:620,q:130,x:5,y:5,g:9,h:55,d:2,e:2.2,v:.05,f:1.05,n:.15,m:.2,b:1.003,r:1.004,s:.7,c:.4,o:.4,vb:7,vd:.09,sg:[6,9,13,8],rg:[11,7,12,2],sx:[5],rx:[6],sn:{6:"CHITTER",9:"STRIDULATE",13:"SKITTER",8:"ALARM",5:"SNAP"},rn:{11:"CLACK",7:"RATCHET",12:"DRONE",2:"BUZZ BARK",6:"WING SNAP"},bl:[0,.7826],lv:[1.016,.9371],lt:{S:{5:1.051,13:1.111},R:{2:.9529,12:1.113,7:1.054}},
+  {t:"N",hz:700,q:2.2,pw:1.6,am:23,ad:.55,g:1.4},
+  {t:"K",r:110,hz:3600,q:.7,pw:.2,j:.95,a:.95,g:1.5},
+  {t:"N",hz:120,q:.7,pw:.3,am:4,ad:.6,g:2.2},
+  {t:"T",hz:34,dr:.7,dc:.9,ts:[[0,1],[.4,.8],[.75,.6]],sd:2,g:.35}]},
+ 5:{/*AMBER ALARM · HIVE: the warbling chirp of the 1954 giant ants, turned into a swarm. Hundreds of tiny calls hop at once, legs stridulate at a rough 90 Hz, wings buzz and mandibles clack */k:"CHITIN SWARM",mt:"WOOD",p:1800,q:130,x:2,y:5,g:9,h:55,ht:"square",hd:.55,d:2,e:2.2,v:.05,f:1.05,n:.15,m:.2,b:1.003,r:1.004,s:.6,c:.4,o:.4,vb:13,vd:.06,sg:[9,6,13,4],rg:[12,7,2,11],sx:[5],rx:[6],sn:{9:"THEM WARBLE",6:"CHITTER",13:"SKITTER",4:"ALARM",5:"SNAP"},rn:{12:"HIVE DRONE",7:"RATCHET",2:"BUZZ BARK",11:"CLACK CLACK",6:"WING SNAP"},bl:[0,.7],lv:[0.9721,1.073],
   XS:[
-  {t:"N",hz:4200,q:3,pw:.5,am:90,ad:.9,aw:"square",g:4.695},
-  {t:"K",r:28,hz:3200,q:6,pw:1,j:.2,a:.4,g:9.369}],
+  {t:"F",r:1,fr:2.01,fi:.25,pw:1,vb:13,vd:.06,g:.45},
+  {t:"G",n:3,lo:2200,hi:7000,r:38,gl:.022,a:.5,pw:.4,g:.45},
+  {t:"N",hz:4200,q:3,pw:.5,am:90,ad:.9,aw:"square",g:3.2}],
   XR:[
-  {t:"K",r:14,hz:1400,q:4,pw:.5,j:.5,a:.6,kd:2,g:10.69},
-  {t:"N",hz:5000,q:1.5,pw:0,g:.2199}]},
- 6:{/*ECLIPSE*/k:"HOLLOW KING",p:560,q:64,x:1.3,y:1.6,g:4,h:5,d:3,e:3.2,v:.66,f:1.1,n:.25,m:.2,b:1.005,r:1.004,s:.8,c:.3,o:.35,vb:5.5,vd:.06,lp:4500,sg:[2,12,15,4],rg:[10,14,1,15],sx:[5],rx:[6],sn:{2:"KEEN",12:"WHISPER CRY",15:"HOLLOW NOTE",4:"TREMBLE",5:"CRACK"},rn:{10:"SIGH",14:"TOLL DOWN",1:"CROWN CALL",15:"DIRGE",6:"VOID BOOM"},bl:[.7516,1.405],lv:[1.409,.8803],lt:{S:{2:.8607,4:1.049,12:1.125},R:{6:1.162,10:.8798}},
+  {t:"K",r:14,hz:1400,q:4,pw:.5,j:.5,a:.6,kd:2,g:9},
+  {t:"G",n:2,lo:600,hi:2400,r:30,gl:.03,a:.5,pw:.3,g:.4},
+  {t:"N",hz:5000,q:1.5,pw:0,g:.22}]},
+ 6:{/*ECLIPSE · THE SPEAKER: it almost talks. The roar walks through vowels like a word in no language, with a register break halfway; the cry is whispered through a moving mouth; a hollow note hangs over both. Heard in a throne room */k:"HOLLOW KING",mt:"STONE",p:560,q:86,x:1.3,y:2.4,g:4,h:28,hd:.35,d:3,e:3.4,v:.66,vw:[[0,.9],[.28,.05],[.55,.95],[.8,.35],[1,.6]],fw:.6,f:1.05,n:.15,m:.2,b:1.005,r:1.004,s:.7,c:.3,o:.35,vb:5.5,vd:.05,sh:[.42,.68,.6],lp:4500,ys:[[.11,.3,3000],[.23,.22,2200],[.37,.15,1500]],sg:[2,12,15,4],rg:[10,1,21,15],sx:[5],rx:[6],sn:{2:"KEEN",12:"WHISPER CRY",15:"HOLLOW NOTE",4:"TREMBLE",5:"CRACK"},rn:{10:"SIGH",1:"THE WORD",21:"DECREE",15:"DIRGE",6:"VOID BOOM"},bl:[.7,1.2],lv:[0.8527,0.7106],lt:{S:{2:0.858,5:0.932,12:1.064,15:1.24},R:{10:1.325,21:0.857}},
   XS:[
-  {t:"F",r:2,fr:3.5,fi:.45,pw:.8,vb:5.5,vd:.008,g:.2451},
-  {t:"N",hz:3200,q:1,pw:.4,g:.5402},
-  {t:"B",pt:[[1,1,1,3.5,.5],[1.5,.6,.8,3.5,.4],[2,.5,.6,3.5,.4]],st:[2,3,.15,.6,1,.5,1],dc:.7,ps:2,g:.1856}],
+  {t:"H",w:"noise",fs:[[700,8,1],[1200,9,.8],[2600,10,.5]],fp:1,g:5},
+  {t:"F",lo:1,r:2,fr:3.5,fi:.45,pw:.8,vb:5.5,vd:.008,g:.22},
+  {t:"B",pt:[[1,1,1,3.5,.5],[1.5,.6,.8,3.5,.4],[2,.5,.6,3.5,.4]],st:[2,3,.15,.6,1,.5,1],dc:.7,ps:2,g:.17}],
   XR:[
-  {t:"T",hz:60,dr:.45,dc:.7,ts:[[0,1]],sd:2.5,g:.494},
-  {t:"P",h:[[1,1],[2,.5],[3,.45],[4,.35],[5,.3],[7,.2]],tr:5,td:.2,ps:2.5,pw:1,g:.1665},
-  {t:"N",hz:1800,q:.8,pw:0,g:.1679}]},
- 7:{/*RADIANT BURN*/k:"MAGMA GOLEM",p:900,q:70,x:7,y:6,g:110,h:11,hd:.6,ht:"sawtooth",d:1.8,e:2.6,v:.15,f:1.05,n:.45,m:.5,nc:1.4,b:1.03,r:1.02,s:.8,c:.4,o:.35,vb:14,vd:.05,sg:[8,0,11,1],rg:[3,1,2,7],sx:[5],rx:[6],sn:{8:"VENT",0:"STEAM SHRIEK",11:"PRESSURE DROP",1:"KETTLE",5:"CRACK"},rn:{3:"GRIND",1:"FURNACE",2:"SLAG BARK",7:"SURGE",6:"COLLAPSE"},bl:[.5229,.9306],lv:[1.019,.8078],lt:{S:{8:.8685,11:1.144}},
+  {t:"H",w:"noise",fs:[[600,7,1],[1100,8,.7],[2400,9,.4]],fp:.8,sp:[0,.35],g:4},
+  {t:"P",h:[[1,1],[2,.5],[3,.45],[4,.35],[5,.3],[7,.2]],tr:5,td:.2,ps:2.5,pw:1,g:.15},
+  {t:"T",hz:60,dr:.45,dc:.7,ts:[[0,1]],sd:2.5,g:.45}]},
+ 7:{/*RADIANT BURN · GRINDSTONE: rock dragged over rock, slowed down until it sounds like a throat. A friction voice grinds under a steam shriek; lava gargles in the roar */k:"MAGMA GOLEM",mt:"STONE",p:900,q:66,x:5,y:4,g:110,h:11,hd:.6,ht:"sawtooth",d:1.8,e:2.6,v:.15,f:.95,n:.45,m:.5,nc:1.4,b:1.03,r:1.02,s:.8,c:.4,o:.35,vb:14,vd:.05,jt:[.02,30],sg:[8,20,11,1],rg:[8,1,16,7],sx:[5],rx:[6],sn:{8:"VENT",20:"STEAM BREAK",11:"PRESSURE DROP",1:"BOIL RISE",5:"ERUPT"},rn:{8:"LAVA GARGLE",1:"MOLTEN SWELL",16:"GRIND",7:"QUAKE",6:"COOL"},bl:[.8,.65],lv:[0.9805,1.034],lt:{S:{1:1.077,8:0.883,11:1.107},R:{7:1.094,16:0.892}},
   XS:[
-  {t:"N",hz:2600,q:6,pw:.55,g:3.583},
-  {t:"N",hz:1800,q:.5,pw:.5,g:.7432},
-  {t:"K",r:40,hz:2000,q:1.5,pw:0,j:.9,a:.8,g:6.622}],
+  {t:"N",hz:2600,q:6,pw:.55,g:3.2},
+  {t:"W",ps:.14,fb:.9,lp:3000,x:3,bd:[[180,3,.6],[420,3,.4]],g:.7},
+  {t:"K",r:40,hz:2000,q:1.5,pw:0,j:.9,a:.8,g:5}],
   XR:[
-  {t:"N",hz:220,q:1.2,pw:0,am:9,ad:.7,aw:"sawtooth",g:3.405},
-  {t:"T",hz:55,dr:.5,dc:.5,ts:[[0,1]],sd:3,g:.4806},
-  {t:"K",r:12,hz:1500,q:2,pw:0,j:.9,a:.9,kd:2,g:4.042}]},
- 8:{/*STORM TEETH*/k:"FLAYED SCREAMER",p:700,q:80,x:7,y:6,g:84,h:72,d:1.6,e:1.8,v:0,f:1,n:.35,m:.45,nc:1.3,b:1.015,r:1.01,s:.8,c:.5,o:.3,vb:12,vd:.05,sg:[10,6,11,3],rg:[4,8,11,9],sx:[5],rx:[6],sn:{10:"RIP SCREAM",6:"SOB",11:"WAIL DROP",3:"DOUBLE SCREAM",5:"CRACK"},rn:{4:"SNARL",8:"GURGLE SNARL",11:"RETCH",9:"HOWL",6:"CHOKE"},bl:[.9067,1.019],lv:[1.054,.7667],lt:{S:{3:.8806,11:1.11},R:{4:1.125,8:.8831,9:1.054}},
+  {t:"W",ps:1.1,fb:.88,lp:1400,x:5,ra:1.4,nz:.15,bd:[[90,3,.6],[260,3,.5]],g:.9},
+  {t:"N",hz:220,q:1.2,pw:0,am:9,ad:.7,aw:"sawtooth",g:3},
+  {t:"T",hz:55,dr:.5,dc:.5,ts:[[0,1]],sd:3,g:.45}]},
+ 8:{/*STORM TEETH · THE SKINNED: a human scream comes out of an animal. A bear's roar opens and a woman's terror scream (rough at 70 Hz, the scream's own alarm rate) rises through it, then the animal takes it back */k:"FLAYED SCREAMER",mt:"FLESH",p:330,q:84,x:7,y:5,g:84,h:38,hd:.5,d:1.8,e:2.4,v:.1,vw:[[0,0],[.5,.2],[1,.55]],f:.95,n:.3,m:.35,nc:1.3,b:1.015,r:1.01,s:.8,c:.6,o:.3,vb:6,vd:.03,jt:[.025,35],sh:[.55,.8,.5],sg:[21,20,8,3],rg:[21,4,0,13],sx:[6],rx:[17],sn:{21:"HUMAN SCREAM",20:"VOICE BREAK",8:"RIP SCREAM",3:"DOUBLE SCREAM",6:"SOB"},rn:{21:"THE VOICE INSIDE",4:"BEAR SNARL",0:"MAUL",13:"RISING",17:"TAKEN BACK"},bl:[.55,1],lv:[1.089,0.5392],lt:{S:{3:0.829,6:1.41,8:1.41,20:0.835,21:0.888},R:{0:1.155,4:1.41,13:0.934,17:1.066,21:0.748}},
   XS:[
-  {t:"N",hz:1500,q:1,pw:.3,am:30,ad:.7,aw:"square",g:1.351},
-  {t:"K",r:7,hz:5000,q:1,pw:0,j:.9,a:.9,g:6.047}],
+  {t:"H",r:2.9,fs:[[1000,6,1],[1550,7,.75],[3000,9,.45]],fp:.35,x:2.5,jt:[.03,45],am:70,ad:.6,vd:.025,vb:6.5,sp:[.08,1],g:2.2},
+  {t:"K",r:7,hz:5000,q:1,pw:0,j:.9,a:.9,g:4}],
   XR:[
-  {t:"N",hz:500,q:2,pw:.5,am:18,ad:.9,g:3.115},
-  {t:"K",r:6,hz:5000,q:1,pw:0,j:.9,a:.9,g:3.145}]},
- 9:{/*SPORE BLOOM*/k:"SLIME STALKER",p:460,q:68,x:5,y:4.5,g:38,h:28,d:2.2,e:2.6,v:.45,f:.95,n:.5,m:.55,nc:.9,b:1.025,r:1.02,s:.8,c:.6,o:.3,vb:6.5,vd:.14,lp:3500,sg:[13,9,6,8],rg:[8,12,2,13],sx:[5],rx:[6],sn:{13:"SKITTER",9:"SKREE TRILL",6:"CHITTER",8:"SKREE",5:"SNAP"},rn:{8:"SQUELCH",12:"BUBBLE DRONE",2:"SPIT",13:"SWELL BUZZ",6:"BURST"},bl:[.5145,1.133],lv:[.9707,.8071],lt:{S:{8:.8505,13:1.058},R:{8:1.062,12:.9345}},
+  {t:"H",r:9.5,cc:[[0,1],[.35,1],[.45,1.25],[.75,1.45],[1,1.1]],fs:[[950,6,1],[1500,7,.7],[2900,9,.4]],fp:.3,x:2,jt:[.03,45],am:68,ad:.6,vd:.02,sp:[.32,.9],g:2},
+  {t:"N",hz:500,q:2,pw:.5,am:18,ad:.9,g:2.6}]},
+ 9:{/*SPORE BLOOM · THE STALKER: a 1979 space-horror creature. Mostly breath: a hiss that rattles in its throat, wet clicking teeth, and a scream that comes out as a rasp with a jaw chatter in it */k:"SLIME STALKER",mt:"FLESH",p:780,q:68,x:5,y:4.5,g:38,h:28,d:1.9,e:2.4,v:.45,f:.95,n:.9,m:1.1,nc:1.6,b:1.025,r:1.02,s:.5,c:.4,o:.3,vb:6.5,vd:.1,lp:7000,sg:[8,13,6,9],rg:[10,4,9,8],sx:[5],rx:[6],sn:{8:"SKREE",13:"SKITTER",6:"CHITTER",9:"SKREE TRILL",5:"JAW SNAP"},rn:{10:"HISS",4:"SNARL",9:"LUNGE",8:"WET GURGLE",6:"RETREAT"},bl:[.7,.45],lv:[0.8589,0.4843],lt:{S:{5:1.084,8:0.878,13:1.089}},
   XS:[
-  {t:"N",hz:3800,q:3,pw:.5,am:70,ad:.9,aw:"square",g:4.015},
-  {t:"K",r:22,hz:850,q:7,pw:.6,j:.6,a:.6,g:32.55}],
+  {t:"N",hz:3800,q:3,pw:.5,am:31,ad:.9,aw:"square",g:3.4},
+  {t:"K",r:22,hz:850,q:7,pw:.6,j:.6,a:.6,g:28}],
   XR:[
-  {t:"K",r:12,hz:700,q:8,pw:.4,j:.7,a:.7,g:26.55},
-  {t:"N",hz:2200,q:1.2,pw:0,am:16,ad:.6,g:.3698}]},
- 10:{/*LAST LIGHT*/k:"BONE WYVERN",p:1050,q:62,x:5,y:1.8,g:20,h:4.5,d:2,e:4,v:.3,f:1.2,n:.2,m:.2,b:1.01,r:1.01,s:.7,c:.3,o:.4,vb:14,vd:.035,lp:3500,sg:[11,8,3,0],rg:[14,15,10,1],sx:[5],rx:[6],sn:{11:"SCREECH",8:"KEEN",3:"TWIN SCREECH",0:"STOOP",5:"CRACK"},rn:{14:"FOGHORN",15:"MOURN",10:"BEACON FADE",1:"SWELL",6:"BONE DROP"},bl:[.8732,1.36],lv:[1.184,.9993],lt:{S:{8:1.15},R:{6:.8912,10:1.174}},
+  {t:"N",hz:5200,q:.9,pw:.2,am:28,ad:.55,g:2.4},
+  {t:"K",r:12,hz:700,q:8,pw:.4,j:.7,a:.7,g:22},
+  {t:"N",hz:2200,q:1.2,pw:0,am:16,ad:.6,g:.4}]},
+ 10:{/*LAST LIGHT · PTERO: the 1956 flying-monster screech, a shrill squawk that whips past with a doppler drop as it banks overhead. The roar is wingbeats and a croak, like big birds slowed down */k:"BONE WYVERN",mt:"WOOD",p:1050,q:118,x:5,y:4,g:20,h:30,hd:.45,d:2,e:2.6,v:.3,f:1.2,n:.2,m:.25,b:1.01,r:1.01,s:.5,c:.3,o:.4,vb:14,vd:.035,lp:5500,sg:[18,8,11,3],rg:[2,11,0,13],sx:[18],rx:[6],sn:{18:"FLYBY",8:"SCREECH",11:"STOOP",3:"TWIN SCREECH",0:"STOOP"},rn:{2:"CROAK",11:"DOUBLE CROAK",0:"WINGS",13:"TAKE-OFF",6:"PERCH"},bl:[1,.55],lv:[0.9674,0.9484],lt:{S:{11:1.102,18:0.942}},
   XS:[
-  {t:"K",r:20,hz:900,q:3,pw:.5,j:.5,a:.6,g:12.73},
-  {t:"N",hz:2800,q:.8,pw:0,g:.4216}],
+  {t:"K",r:20,hz:900,q:3,pw:.5,j:.5,a:.6,g:11},
+  {t:"N",hz:2800,q:.8,pw:0,am:3.2,ad:.5,g:.5}],
   XR:[
-  {t:"P",h:[[1,1],[2,.5],[3,.35],[4,.2]],tr:3.5,td:.12,ps:3,pw:1,g:.2065},
-  {t:"K",r:10,hz:700,q:3,pw:0,j:.6,a:.7,g:6.159}]},
- 11:{/*DEEP TREMOR*/k:"CITY BREAKER",p:560,q:46,x:6,y:4,g:40,h:14,d:2.4,e:3.4,v:.1,f:.78,n:.3,m:.4,nc:.5,b:1.01,r:1.012,s:1.3,c:.8,o:.25,vb:3,vd:.05,lp:2500,sg:[0,3,4,11],rg:[0,11,7,3],sx:[5],rx:[6],sn:{0:"SCREAM",3:"RAGE SCREAM",4:"BAWL",11:"ROAR SCREAM",5:"CRACK"},rn:{0:"BELLOW",11:"STOMP ROAR",7:"CHARGE",3:"HUFF",6:"CHEST SLAM"},bl:[1.067,.8295],lv:[.9325,1.048],lt:{S:{4:.8799,11:1.084},R:{3:1.105,7:.8912}},
+  {t:"N",hz:450,q:.6,pw:.2,am:2.8,ad:.95,g:3.5},
+  {t:"P",h:[[1,1],[2,.5],[3,.35],[4,.2]],tr:3.5,td:.12,ps:3,pw:1,g:.18},
+  {t:"K",r:10,hz:700,q:3,pw:0,j:.6,a:.7,g:5.5}]},
+ 11:{/*DEEP TREMOR · KING OF MONSTERS: the 1954 method. A rosined glove dragged down a slack contrabass string and slowed on tape: the skree that breaks into the onk. The roar is three-part (bark, scream, breath) and is heard as it comes back off the buildings, the way it was replayed through stadium speakers in 2014 and 2023 */k:"CITY BREAKER",mt:"STONE",p:520,q:62,x:6,y:4.5,g:40,h:14,d:2.6,e:3.2,v:.1,vw:[[0,.0],[.3,.05],[.8,.3],[1,.5]],f:.8,n:.25,m:.35,nc:.6,b:1.01,r:1.012,s:1.2,c:.8,o:.25,vb:3,vd:.03,lp:3200,jt:[.012,20],ys:[[.17,.42,3200],[.31,.34,2400],[.52,.26,1500],[.83,.18,1000],[1.25,.12,650]],sg:[16,0,3,11],rg:[16,21,0,9],sx:[5],rx:[6],sn:{16:"SKREE-ONK",0:"SCREAM",3:"RAGE SCREAM",11:"ROAR SCREAM",5:"CRACK"},rn:{16:"ONK",21:"KING'S ROAR",0:"BELLOW",9:"BLAST",6:"SETTLE"},bl:[.9,1],lv:[0.9469,0.4916],lt:{S:{3:0.937,11:1.083},R:{0:1.194,9:1.063,16:0.901,21:0.884}},
   XS:[
-  {t:"N",hz:900,q:.7,pw:.3,g:.7871}],
+  {t:"W",ps:.3,fb:.94,lp:5000,x:2.5,ra:1.3,nz:.06,bd:[[95,4,.7],[230,3,.5],[480,3,.35]],g:1},
+  {t:"N",hz:900,q:.7,pw:.3,g:.6}],
   XR:[
-  {t:"T",hz:58,dr:.5,dc:.22,ts:[[0,1],[.17,.8],[.34,.6]],sd:4,nz:[260,.9,.8,.05],g:.6029},
-  {t:"N",hz:700,q:.7,pw:0,am:5,ad:.9,aw:"sawtooth",g:.8422}]},
- 12:{/*NIGHT CHOIR*/k:"DAMNED CHORUS",p:600,q:66,x:2.2,y:2.5,g:5,h:6,d:2.6,e:3,v:.35,f:.95,n:.14,m:.16,s:.8,c:.6,o:.3,vb:6,vd:.08,lp:5000,vs:[[1,1,"sawtooth"],[1.06,.8,"sawtooth"],[1.5,.7,"sawtooth"],[1.887,.55,"sawtooth"],[2,.35,"square"]],rs:[[1,1,"sawtooth"],[1.122,.8,"sawtooth"],[1.5,.7,"sawtooth"],[.5,.9,"square"]],sg:[4,2,12,3],rg:[15,1,3,10],sx:[5],rx:[6],sn:{4:"LAMENT",2:"KEEN",12:"CHORUS RISE",3:"ANSWER",5:"CRACK"},rn:{15:"DIRGE",1:"MOAN CHORUS",3:"UNDERSONG",10:"SOB",6:"SINK"},bl:[1.051,1.203],lv:[1.001,.9292],lt:{S:{2:.955},R:{15:1.049,3:.9546}},
+  {t:"W",ps:2.2,fb:.95,lp:3600,x:3,ra:1.2,nz:.05,bd:[[90,4,.7],[210,3,.5],[460,3,.3]],g:1.1},
+  {t:"T",hz:58,dr:.5,dc:.22,ts:[[0,1],[.17,.8],[.34,.6]],sd:4,nz:[260,.9,.8,.05],g:.55}]},
+ 12:{/*NIGHT CHOIR · THE CHOIR IN THE SKY: the screams of everything it has swallowed, far away inside a wind. Each voice has its own pitch and its own terror; they rise and fall out of step */k:"DAMNED CHORUS",mt:"STONE",p:600,q:66,x:2.2,y:2.5,g:5,h:6,d:3.2,e:3.6,v:.35,f:.95,n:.14,m:.16,s:.6,c:.6,o:.3,vb:6,vd:.08,lp:3400,vs:[[1,1,"sawtooth"],[1.06,.8,"sawtooth"],[1.5,.7,"sawtooth"]],rs:[[1,1,"sawtooth"],[1.19,.8,"sawtooth"],[1.5,.6,"sawtooth"]],ys:[[.38,.3,1800],[.9,.2,1100]],sg:[2,10,13,12],rg:[5,1,10,15],sx:[20],rx:[6],sn:{2:"LAMENT",10:"WAILING",13:"CLAMOUR",12:"CHOIR RISE",20:"ONE VOICE BREAKS"},rn:{5:"HOWLING WIND",1:"SWELL",10:"SIGH",15:"DIRGE",6:"SILENCE"},bl:[.4,.4],lv:[1.508,1.409],lt:{S:{10:1.119},R:{5:0.827,10:1.203,15:1.093}},
   XS:[
-  {t:"N",hz:800,q:1.5,pw:.4,am:7,ad:.5,g:1.255}],
+  {t:"H",r:1.35,cc:[[0,1],[.3,1.5],[.6,1.3],[1,.9]],fs:[[950,6,1],[1450,7,.75]],am:60,ad:.45,vd:.03,vb:5.2,sp:[.05,.9],g:1.3},
+  {t:"H",r:1.8,cc:[[0,1.1],[.4,1.2],[.7,1.6],[1,1.2]],fs:[[1000,6,1],[1600,7,.75]],am:75,ad:.45,vd:.03,vb:6.4,sp:[.25,1],g:1.1},
+  {t:"H",lo:1,r:.95,cc:[[0,1.3],[.5,1],[1,.8]],fs:[[850,6,1],[1250,7,.75]],am:55,ad:.45,vd:.03,vb:4.6,sp:[0,.7],g:1.1},
+  {t:"N",hz:900,q:2.5,pw:1.2,am:.4,ad:.5,g:1.2}],
   XR:[
-  {t:"N",hz:600,q:1.4,pw:.3,am:6,ad:.5,g:.9343}]},
- 13:{/*FROZEN MAW*/k:"GLACIER BEAST",p:1100,q:70,x:4,y:3,g:90,h:9,hd:.6,ht:"sawtooth",d:1.7,e:2.2,v:.9,f:1.15,n:.5,m:.5,nc:1.8,b:1.02,r:1.015,s:.6,c:.25,o:.15,vb:13,vd:.03,sg:[8,0,3,9],rg:[3,0,2,10],sx:[5],rx:[6],sn:{8:"SPLIT",0:"WIND SHRIEK",3:"CRACK CRACK",9:"SHIVER",5:"SHATTER"},rn:{3:"CREAK",0:"GLACIER GROWL",2:"ICE BARK",10:"GROAN",6:"AVALANCHE"},bl:[1.051,1.069],lv:[1.024,.9094],lt:{S:{9:.952},R:{3:.9488,6:1.048}},
+  {t:"N",hz:700,q:3,pw:1.4,am:.3,ad:.5,g:2.6},
+  {t:"H",r:6,cc:[[0,1],[.5,1.4],[1,1.1]],fs:[[900,6,1],[1400,7,.75]],am:58,ad:.45,vd:.03,vb:5,sp:[.2,.95],g:.9},
+  {t:"H",lo:1,r:8.5,cc:[[0,1.2],[.5,1],[1,1.3]],fs:[[1000,6,1],[1550,7,.75]],am:72,ad:.45,vd:.03,vb:6,sp:[.35,1],g:.75}]},
+ 13:{/*FROZEN MAW · CALVING: a glacier that screams. Ice under stress makes laser-like chirps (each crack rings down in pitch), wind shrieks across it, and the roar is a wall of ice breaking off into the sea */k:"GLACIER BEAST",mt:"ICE",p:1100,q:58,x:3,y:3,g:90,h:9,hd:.6,ht:"sawtooth",d:1.9,e:2.8,v:.9,f:1.15,n:.6,m:.5,nc:1.8,b:1.02,r:1.015,s:.9,c:.25,o:.15,vb:13,vd:.03,lp:6000,sg:[8,0,3,12],rg:[3,0,2,6],sx:[5],rx:[9],sn:{8:"SPLIT",0:"WIND SHRIEK",3:"CRACK CRACK",12:"WHITEOUT",5:"SHATTER"},rn:{3:"CALVING",0:"GLACIER ROAR",2:"FRACTURE",9:"AVALANCHE",6:"SETTLE"},bl:[.55,.6],lv:[1.049,0.895],lt:{S:{0:1.066,8:0.849,12:1.067},R:{3:1.06}},
   XS:[
-  {t:"K",r:22,hz:5000,q:2,pw:.5,j:.9,a:.9,g:8.4},
-  {t:"N",hz:2500,q:.8,pw:.5,g:.5727}],
+  {t:"C",n:[5,9],hi:7500,lo:350,cd:.05,sk:1.4,g:1.2},
+  {t:"N",hz:2500,q:4,pw:1,g:2.2},
+  {t:"K",r:22,hz:5000,q:2,pw:.5,j:.9,a:.9,g:6}],
   XR:[
-  {t:"K",r:7,hz:3500,q:1.5,pw:0,j:.9,a:.95,kd:2,g:2.607},
-  {t:"N",hz:900,q:.6,pw:.5,g:.3916}]},
- 14:{/*TIDAL WAKE*/k:"SEA SERPENT",p:340,q:56,x:3,y:3,g:5,h:7,d:3,e:3.6,v:.62,f:.85,n:.3,m:.4,nc:.5,b:1.01,r:1.008,s:1,c:.6,vb:3.5,vd:.06,lp:3200,sg:[1,12,2,0],rg:[1,3,10,15],sx:[5],rx:[6],sn:{1:"BUGLE",12:"BREACH",2:"KEEN",0:"SURGE",5:"CRACK"},rn:{1:"SURGE",3:"UNDERTOW",10:"RECEDE",15:"DEEP DRIFT",6:"BREAKER"},bl:[1.343,1.075],lv:[.9577,.8549],lt:{S:{1:1.098},R:{3:.911,6:1.13}},
+  {t:"C",n:[4,7],hi:2600,lo:90,cd:.16,sk:1.2,g:1.4},
+  {t:"N",hz:900,q:.6,pw:.5,am:.5,ad:.4,g:.6},
+  {t:"T",hz:45,dr:.6,dc:.6,ts:[[0,1],[.3,.7],[.55,.5]],sd:3,nz:[1800,1,.6,.06],g:.5}]},
+ 14:{/*TIDAL WAKE · THE FOG HORN: the 1950s sea beast that answered a lighthouse horn because it sounded like one of its kind. A diaphone bellow, steady and enormous, that ends in the horn's falling grunt; across open water */k:"SEA SERPENT",mt:"WATER",p:340,q:96,x:2,y:1.8,g:5,h:7,d:3,e:4,v:.4,f:.85,n:.15,m:.12,nc:.5,b:1.004,r:1.003,s:1.3,c:.6,vb:3.5,vd:.03,lp:1700,rs:[[1,1,"square"],[1.003,.8,"sawtooth"],[.5,.9,"square"]],ys:[[.6,.3,900],[1.4,.18,600]],sg:[1,12,2,14],rg:[18,0,1,15],sx:[5],rx:[6],sn:{1:"BUGLE",12:"BREACH",2:"KEEN",14:"ANSWER",5:"CRACK"},rn:{18:"FOG HORN",0:"BELLOW",1:"SURGE",15:"LONELY CALL",6:"SOUNDING"},bl:[1,1],lv:[1.268,0.5857],lt:{S:{1:1.101,12:1.102,14:0.87},R:{1:1.151,6:1.067,15:1.069,18:0.798}},
   XS:[
-  {t:"N",hz:500,q:.5,pw:.8,am:.7,ad:.5,g:1.222}],
+  {t:"P",h:[[1,1],[2,.6],[3,.35],[4,.2]],tr:.9,td:.25,ps:1,pw:1,g:.25},
+  {t:"N",hz:500,q:.5,pw:.8,am:.7,ad:.5,g:1}],
   XR:[
-  {t:"N",hz:300,q:.5,pw:.5,am:.5,ad:.6,g:1.333},
-  {t:"T",hz:42,dr:.7,dc:.8,ts:[[0,1]],sd:3,g:.4328}]},
- 15:{/*BONE ORGAN*/k:"PIPE COLOSSUS",p:520,q:65,sg:[1,15,14,3],rg:[14,10,1,12],sx:[5],rx:[6],sn:{1:"OVERBLOW",15:"DIAPASON",14:"MIXTURE",3:"PIPE SCREAM",5:"CIPHER"},rn:{14:"FULL ORGAN",10:"WIND DOWN",1:"SWELL BOX",12:"PEDAL POINT",6:"BELLOWS FAIL"},bl:[0,0],lv:[.7977,.4358],lt:{S:{1:1.12}},
+  {t:"N",hz:300,q:.5,pw:.5,am:.5,ad:.6,g:1},
+  {t:"T",hz:42,dr:.7,dc:.8,ts:[[0,1]],sd:3,g:.4}]},
+ 15:{/*BONE ORGAN · PIPE COLOSSUS: a living pipe organ. Overblown ranks, a cipher that will not stop, the bellows failing. In its own nave */k:"PIPE COLOSSUS",mt:"METAL",p:520,q:65,ys:[[.13,.25,2500],[.29,.18,1600]],sg:[1,15,14,3],rg:[14,10,1,12],sx:[5],rx:[6],sn:{1:"OVERBLOW",15:"DIAPASON",14:"MIXTURE",3:"PIPE SCREAM",5:"CIPHER"},rn:{14:"FULL ORGAN",10:"WIND DOWN",1:"SWELL BOX",12:"PEDAL POINT",6:"BELLOWS FAIL"},bl:[0,0],lv:[0.7395,0.6483],lt:{S:{1:1.072,15:0.942}},
   XS:[
   {t:"P",h:[[1,1],[2,.7],[3,.5],[4,.35],[6,.2]],tr:5.5,td:.15,pw:1,g:.7665},
   {t:"P",h:[[1,.6],[2,.4],[3,.25]],tr:5.5,td:.15,ps:1.5,pw:1,g:.5383},
@@ -685,66 +743,77 @@ const KV={
   {t:"P",h:[[.5,.55],[1,1],[2,.8],[3,.7],[4,.55],[5,.45],[6,.35],[8,.25],[10,.15]],tr:5,td:.18,ps:2,pw:1,g:.465},
   {t:"P",h:[[1,.6],[2,.4],[3,.3]],tr:5,td:.18,ps:3,pw:1,g:.2993},
   {t:"N",hz:1500,q:.7,pw:0,g:.2205}]},
- 16:{/*MAGMA SPINE*/k:"OBSIDIAN TITAN",p:360,q:50,x:8,y:7,g:16,h:14,d:2.2,e:3.2,v:.1,f:.85,n:.4,m:.5,nc:.8,b:1.015,r:1.012,s:1.2,c:.8,o:.35,vb:4.5,vd:.05,lp:3500,sg:[2,0,12,3],rg:[0,3,13,15],sx:[5],rx:[6],sn:{2:"KLAXON",0:"WAIL",12:"LONG WAIL",3:"TWIN WAIL",5:"FRACTURE"},rn:{0:"MOLTEN BELLOW",3:"MAGMA GROAN",13:"ERUPT",15:"SLOW BURN",6:"SPINE CRACK"},bl:[1.079,.7841],lv:[.9846,.9089],lt:{R:{3:1.081,6:.9151}},
+ 16:{/*MAGMA SPINE · AIR RAID: it calls like the sirens that warned the city. Two rotors a little out of tune beat at 30 to 60 Hz (the roughness that makes alarms and screams hard to ignore), chopped by the rotor; the low klaxon comes back off the empty streets */k:"OBSIDIAN TITAN",mt:"GLASS",p:330,q:74,x:3,y:3.5,g:62,gd:.55,gt:"square",h:14,d:2.6,e:3.4,v:.1,f:.85,n:.15,m:.3,nc:.8,b:1.012,r:1.012,s:1.1,c:.6,o:.25,vb:.3,vd:.02,lp:3500,vs:[[1,1,"sawtooth"],[1.06,.95,"sawtooth"],[2,.3,"square"]],ys:[[.24,.38,2400],[.55,.27,1500],[1.05,.16,900]],sg:[7,2,12,3],rg:[0,3,13,15],sx:[5],rx:[6],sn:{7:"AIR RAID",2:"WAIL",12:"WIND-UP",3:"TWIN WAIL",5:"ALL CLEAR"},rn:{0:"KLAXON",3:"RUMBLE",13:"SPIN-UP",15:"CURFEW",6:"POWER DOWN"},bl:[1,1],lv:[1.03,0.6573],
   XS:[
-  {t:"K",r:14,hz:4200,q:3,pw:0,j:.9,a:.9,g:8.775},
-  {t:"N",hz:400,q:.7,pw:.5,am:3.5,ad:.6,g:1.437}],
+  {t:"K",r:14,hz:4200,q:3,pw:0,j:.9,a:.9,g:6},
+  {t:"N",hz:400,q:.7,pw:.5,am:3.5,ad:.6,g:1.2}],
   XR:[
-  {t:"K",r:10,hz:3800,q:3,pw:0,j:.9,a:.9,g:3.38},
-  {t:"N",hz:420,q:.7,pw:.5,am:3.5,ad:.7,g:1.317}]},
- 17:{/*SUNKEN BELLS*/k:"BELL TITAN",p:420,q:64,x:2.2,y:2.5,g:3,h:5,d:2.8,e:3,v:.55,f:.9,n:.08,m:.1,b:1.003,r:1.003,s:1,c:.5,o:.2,vb:5,vd:.03,lp:5000,sg:[14,13,6,15],rg:[14,15,1,0],sx:[5],rx:[6],sn:{14:"PEAL",13:"CLANG",6:"CARILLON",15:"TOLL CALL",5:"CRACKED BELL"},rn:{14:"TOLL",15:"DIRGE BELL",1:"SWELL TOLL",0:"DEEP TOLL",6:"BELL DROP"},bl:[.3605,.3306],lv:[.6843,.6819],lt:{S:{5:1.095,13:1.058},R:{0:.8811,1:1.154}},
+  {t:"K",r:10,hz:3800,q:3,pw:0,j:.9,a:.9,g:3},
+  {t:"N",hz:420,q:.7,pw:.5,am:3.5,ad:.7,g:1.2}]},
+ 17:{/*SUNKEN BELLS · BELL TITAN: a bell tower that walks. Peals, clangs, a carillon gone wrong */k:"BELL TITAN",mt:"METAL",p:420,q:64,x:2.2,y:2.5,g:3,h:5,d:2.8,e:3,v:.55,f:.9,n:.08,m:.1,b:1.003,r:1.003,s:1,c:.5,o:.2,vb:5,vd:.03,lp:5000,sg:[14,13,6,15],rg:[14,15,1,0],sx:[5],rx:[6],sn:{14:"PEAL",13:"CLANG",6:"CARILLON",15:"TOLL CALL",5:"CRACKED BELL"},rn:{14:"GREAT BELL",15:"DEATH KNELL",1:"BOURDON",0:"TOCSIN",6:"STILL"},bl:[0,0],lv:[0.8172,1],lt:{S:{5:1.143,6:0.934}},
   XS:[
   {t:"B",pt:[[.5,.7,1.5],[1,1,1],[1.2,.6,.9],[1.5,.45,.7],[2,.5,.6],[2.5,.3,.5],[3,.25,.4],[4.07,.2,.3],[5.4,.12,.25],[6.8,.1,.2],[8.9,.07,.15]],st:[4,8,0,.7,1,.45,.85],dc:.55,g:1.11}],
   XR:[
   {t:"B",pt:[[.5,.7,1.5],[1,1,1],[1.2,.6,.9],[1.5,.45,.7],[2,.5,.6],[2.5,.3,.5],[3,.25,.4],[4.07,.2,.3],[5.4,.12,.25],[6.8,.1,.2],[8.9,.07,.15]],st:[1,2,0,.5,1,.7,1],dc:.9,ps:3,g:.4648},
   {t:"P",h:[[1,1],[1.004,.9]],ps:3,pw:1,g:.07534}]},
- 18:{/*VOID LANTERN*/k:"LURE ANGLER",p:820,q:88,x:2,y:2.5,g:6,h:9,d:2.6,e:2.6,v:.5,f:1.2,n:.1,m:.12,b:1.008,r:1.006,s:.5,c:.2,o:.4,vb:7.5,vd:.12,lp:6000,sg:[4,9,12,14],rg:[1,15,12,10],sx:[5],rx:[6],sn:{4:"LURE",9:"GLOW TRILL",12:"SONG",14:"PLINK PLINK",5:"FLICKER"},rn:{1:"GLOW SWELL",15:"DEEP SONG",12:"HUM",10:"DIM",6:"SNUFF"},bl:[0,1.396],lv:[.9422,.7629],lt:{R:{1:.9324,6:.9023,12:1.124}},
+ 18:{/*VOID LANTERN · THE HUNTER IN THE DARK: it hunts by sound. A search mode of sonar clicks that speed up as it closes in, a lure that glows in tone, and then the attack */k:"LURE ANGLER",mt:"WATER",p:820,q:88,x:3,y:2.5,g:6,h:9,d:2.8,e:2.8,v:.5,f:1.2,n:.1,m:.12,b:1.008,r:1.006,s:.5,c:.2,o:.4,vb:7.5,vd:.12,lp:7000,sg:[1,9,12,8],rg:[1,15,12,10],sx:[21],rx:[6],sn:{1:"CLOSING IN",9:"GLOW TRILL",12:"LURE SONG",8:"STRIKE",21:"ATTACK"},rn:{1:"SONAR SWEEP",15:"DEEP LURE",12:"HUM",10:"BREATH",6:"FLICKER OUT"},bl:[.35,0],lv:[1.213,1.907],lt:{S:{1:1.114,8:0.746,9:1.137,12:1.109,21:1.111},R:{6:1.142,10:1.139,12:0.796}},
   XS:[
-  {t:"F",r:1,fr:2.01,fi:.35,pw:.9,vb:7.5,vd:.1,g:.883},
-  {t:"B",pt:[[1,1,1,2.76,.6],[2,.5,.6,3.5,.4]],st:[2,5,.1,.8,1,.5,1],dc:.35,ps:1.5,g:.4243}],
+  {t:"K",r:9,hz:3200,q:2.5,pw:2.2,j:.08,a:.15,kd:.5,g:5},
+  {t:"F",r:1,fr:2.01,fi:.35,pw:.9,vb:7.5,vd:.1,g:.5},
+  {t:"H",r:2.2,fs:[[1800,5,1],[3400,6,.6]],x:4,jt:[.03,50],am:90,ad:.7,sp:[.72,1],fi:.01,g:1.6}],
   XR:[
-  {t:"P",h:[[1,1],[1.004,.9],[1.5,.4],[2,.3]],tr:.8,td:.35,ps:2.5,pw:1,g:.1964},
-  {t:"B",pt:[[1,1,1,2.76,.6],[2,.5,.6,3.5,.4]],st:[1,2,0,.5,1,.6,1],dc:.5,ps:3,g:.1545}]},
- 19:{/*HOLLOW CHOIR*/k:"MANY-MOUTHED",p:520,q:70,x:1.6,y:2,g:5.5,h:6,d:2.8,e:3.2,v:.2,f:.9,n:.1,m:.12,s:.7,c:.7,o:.2,vb:5.5,vd:.05,lp:4500,vs:[[1,1,"sawtooth"],[1.122,.8,"sawtooth"],[1.26,.7,"sawtooth"],[1.5,.6,"sawtooth"],[1.78,.45,"sawtooth"]],rs:[[1,1,"sawtooth"],[1.5,.8,"sawtooth"],[2,.7,"sawtooth"],[.5,.9,"square"]],fs:[700,1300,2600],sg:[6,13,3,2],rg:[12,1,15,8],sx:[5],rx:[6],sn:{6:"CHATTER",13:"SHRIEK CHOIR",3:"TWIN CHOIR",2:"HOLLOW KEEN",5:"CRACK"},rn:{12:"DRONE",1:"MAW CHORD",15:"DIRGE",8:"MURMUR",6:"SINK"},bl:[1.179,2.38],lv:[.9288,.5432],lt:{R:{1:.9006,12:1.122}},
+  {t:"K",r:5,hz:2400,q:3,pw:2,j:.1,a:.2,kd:.7,g:3.5},
+  {t:"P",h:[[1,1],[1.004,.9],[1.5,.4],[2,.3]],tr:.8,td:.35,ps:2.5,pw:1,g:.2},
+  {t:"B",pt:[[1,1,1,2.76,.6],[2,.5,.6,3.5,.4]],st:[1,2,0,.5,1,.6,1],dc:.5,ps:3,g:.15}]},
+ 19:{/*HOLLOW CHOIR · THE THING: too many mouths, none in tune with the others. Snarls on clashing pitches (a register out of ratio is what makes a voice sound wrong), a throat that drops into subharmonics, wet teeth, shrieks that stutter over each other. Close and wet */k:"MANY-MOUTHED",mt:"FLESH",p:520,q:78,x:6,y:6,g:47,gd:.5,h:33,hd:.55,d:2.4,e:2.8,v:.2,vw:[[0,.1],[.4,.5],[1,.15]],f:.9,n:.25,m:.35,nc:1.4,b:1.37,r:1.37,s:.8,c:.7,o:.4,ob:1.83,vb:7,vd:.04,jt:[.035,30],sh:[.25,.6,.6],lp:5000,vs:[[1,1,"sawtooth"],[1.37,.8,"sawtooth"],[.71,.7,"sawtooth"],[1.83,.4,"square"]],rs:[[1,1,"sawtooth"],[1.37,.8,"sawtooth"],[.71,.8,"sawtooth"],[.5,.7,"square"]],sg:[6,13,3,20],rg:[4,11,8,9],sx:[5],rx:[17],sn:{6:"STUTTER",13:"CLAMOUR",3:"ECHO MOUTH",20:"SPLIT THROAT",5:"TEAR"},rn:{4:"SNARLS",11:"BITE BITE",8:"WET GURGLE",9:"ERUPTION",17:"INSIDE OUT"},bl:[1,1],lv:[0.82,0.8056],lt:{S:{6:1.074}},
   XS:[
-  {t:"K",r:9,hz:2400,q:3,pw:0,j:.4,a:.5,g:7.376}],
+  {t:"H",r:1.5,cc:[[0,1.2],[.3,1.5],[.31,1],[.6,1.3],[.61,1.7],[1,1.2]],fs:[[1100,6,1],[1700,7,.7],[3100,9,.4]],x:3,jt:[.04,40],am:43,ad:.8,aw:"square",g:1.3},
+  {t:"K",r:24,hz:2400,q:3,pw:0,j:.9,a:.9,g:6}],
   XR:[
-  {t:"N",hz:1600,q:1,pw:0,g:.4117}]},
- 20:{/*ASH CATHEDRAL*/k:"LIVING CATHEDRAL",p:760,q:58,x:1.5,y:3,g:6,h:5,d:3,e:3.8,v:.3,f:.85,n:.08,m:.15,s:1,c:.7,o:.5,vb:5,vd:.05,lp:5500,vs:[[1,1,"sawtooth"],[1.26,.7,"sawtooth"],[1.5,.7,"sawtooth"],[2,.5,"square"]],sg:[14,13,2,3],rg:[14,1,3,15],sx:[5],rx:[6],sn:{14:"ROSE WINDOW",13:"SHATTER",2:"KYRIE",3:"RESPONSE",5:"CRACK"},rn:{14:"AMEN",1:"STONE CHORD",3:"GRIND",15:"REQUIEM",6:"COLLAPSE"},bl:[.8751,.5869],lv:[1.255,.8363],
+  {t:"H",r:5.5,cc:[[0,1],[.4,1.3],[.42,.9],[1,1.1]],fs:[[800,6,1],[1250,7,.7],[2600,9,.4]],x:3,jt:[.04,40],am:37,ad:.75,aw:"square",sp:[.15,1],g:1.2},
+  {t:"K",r:30,hz:1600,q:2,pw:0,j:.95,a:.95,g:5}]},
+ 20:{/*ASH CATHEDRAL · THE BEAST CHOIR: a cathedral that sings with one terrible throat. The roar is sung as a chord by a choir that moves its vowels together, under an organ and a bell; the nave answers */k:"LIVING CATHEDRAL",mt:"STONE",p:760,q:96,x:1.5,y:2.2,g:6,h:5,d:3,e:3.8,v:.3,vw:[[0,.9],[.5,.1],[1,.5]],fw:.4,f:.85,n:.08,m:.15,s:.8,c:.7,o:.5,vb:5,vd:.05,lp:5500,vs:[[1,1,"sawtooth"],[1.26,.7,"sawtooth"],[1.5,.7,"sawtooth"],[2,.5,"square"]],rs:[[1,1,"sawtooth"],[1.19,.7,"sawtooth"],[1.5,.7,"sawtooth"],[.5,.8,"square"]],ys:[[.19,.3,2400],[.41,.24,1600],[.73,.16,1000]],sg:[14,13,2,3],rg:[14,1,3,15],sx:[5],rx:[6],sn:{14:"HOSANNA",13:"CLAMOUR",2:"LAMENT",3:"ANTIPHON",5:"CRACK"},rn:{14:"TE DEUM",1:"CHOIR SWELL",3:"NAVE RUMBLE",15:"REQUIEM",6:"VESPERS"},bl:[1,1],lv:[1.09,0.8483],
   XS:[
-  {t:"B",pt:[[1,1,1,3.5,.6],[1.5,.6,.8,3.5,.5],[2.01,.5,.6,3.5,.5],[2.5,.4,.5,3.5,.4]],st:[5,9,0,.6,1,.3,.8],dc:.3,ps:1.6,g:.4634}],
+  {t:"B",pt:[[1,1,1,3.5,.6],[1.5,.6,.8,3.5,.5],[2.01,.5,.6,3.5,.5],[2.5,.4,.5,3.5,.4]],st:[4,7,0,.6,1,.3,.8],dc:.3,ps:1.6,g:.4634}],
   XR:[
   {t:"P",h:[[.5,.7],[1,1],[2,.7],[3,.5],[4,.35],[6,.2],[8,.12]],tr:5,td:.12,ps:2.5,pw:1,g:.2167},
-  {t:"N",hz:320,q:1,pw:0,am:8,ad:.8,aw:"sawtooth",g:1.873},
   {t:"B",pt:[[.5,.8,1.5],[1,1,1],[1.2,.5,.9],[2,.5,.6]],st:[1,1,0,0,1,1,1],dc:1.1,ps:4,g:.1346}]},
- 21:{/*RUST HYMN*/k:"EMBER DEMON",p:430,q:66,x:9,y:8,g:58,h:46,d:2,e:2.5,v:.15,f:.95,n:.35,m:.4,nc:1.1,b:1.02,r:1.025,s:1,c:.7,o:.3,vb:8,vd:.04,sg:[0,3,11,9],rg:[0,4,7,11],sx:[5],rx:[6],sn:{0:"SCREECH",3:"SHRIEK SHRIEK",11:"PLUNGE",9:"CACKLE",5:"CRACK"},rn:{0:"BRIMSTONE",4:"SNARL",7:"WINGBEAT",11:"BARK",6:"CINDER DROP"},bl:[1.118,.7934],lv:[1.01,.9149],
+ 21:{/*RUST HYMN · THE POSSESSED: two old tricks for the unholy. Big-cat roars played backwards and an octave down (1933), and a demon's double voice, one throat an octave under the other, with a pig's squeal in it (1973). It cackles */k:"EMBER DEMON",mt:"STONE",p:430,q:70,x:7,y:6,g:58,h:46,d:2,e:2.6,v:.15,vw:[[0,.0],[.7,.35],[1,.7]],f:.85,n:.35,m:.4,nc:1.1,b:1.02,r:1.025,s:1,c:.7,o:.3,vb:8,vd:.04,jt:[.02,25],rs:[[1,1,"sawtooth"],[1.025,.8,"sawtooth"],[.5,1,"sawtooth"],[.25,.6,"square"]],sg:[17,19,8,11],rg:[17,4,11,0],sx:[17],rx:[6],sn:{17:"CACKLE",19:"BACKWARDS",8:"SHRIEK",11:"PLUNGE",5:"CRACK"},rn:{17:"BACKMASK",4:"SNARL",11:"BARK BARK",0:"BRIMSTONE",6:"CINDER DROP"},bl:[1,1],lv:[1.028,0.7755],lt:{S:{8:0.774,17:1.41},R:{6:1.069}},
   XS:[
-  {t:"K",r:12,hz:3000,q:1,pw:0,j:.9,a:.9,g:4.974},
-  {t:"N",hz:2000,q:.8,pw:.5,g:.5183}],
+  {t:"H",r:2.4,fs:[[1300,8,1],[2600,9,.6]],fp:.3,x:4,jt:[.04,50],am:55,ad:.6,sp:[.1,.9],g:1.2},
+  {t:"N",hz:2000,q:.8,pw:.5,g:.5}],
   XR:[
-  {t:"N",hz:140,q:.8,pw:0,am:3.2,ad:1,g:3.398},
-  {t:"K",r:8,hz:3000,q:1,pw:0,j:.9,a:.9,g:2.579}]},
- 22:{/*COLD SIGNAL*/k:"CRYSTAL BEACON",p:880,q:90,sg:[1,14,8,9],rg:[14,15,12,1],sx:[5],rx:[6],sn:{1:"SWEEP",14:"PING",8:"CHIRP",9:"SCAN",5:"GLITCH"},rn:{14:"BEACON",15:"RING DOWN",12:"HUM",1:"PULSE",6:"BLACKOUT"},bl:[0,0],lv:[.952,.7365],lt:{S:{1:1.153,8:.7168,9:1.069,14:1.11},R:{6:1.082,12:.8722}},
+  {t:"H",r:12,cc:[[0,.9],[.8,1.3],[1,1.35]],fs:[[1400,8,1],[2700,9,.6]],fp:.3,x:4,jt:[.04,50],am:58,ad:.6,sp:[.45,.98],g:1.1},
+  {t:"N",hz:140,q:.8,pw:0,am:3.2,ad:1,g:3},
+  {t:"K",r:8,hz:3000,q:1,pw:0,j:.9,a:.9,g:2.4}]},
+ 22:{/*COLD SIGNAL · MONSTER FROM THE ID: built like the 1956 cybernetic circuits that were driven until they burned out. Ring-modulated feedback tones that will not settle, a throbbing invisible footfall, and the sputter of a circuit dying */k:"CRYSTAL BEACON",mt:"ENERGY",p:880,q:90,x:3,y:3,g:7,h:7,d:2.6,e:3.4,v:.3,f:1,n:.05,m:.05,s:.6,c:.3,o:.3,vb:5,vd:.05,rm:[17,.6],sg:[1,9,11,4],rg:[14,12,1,7],sx:[5],rx:[6],sn:{1:"SWEEP",9:"SCAN",11:"BURN OUT",4:"FEEDBACK",5:"GLITCH"},rn:{14:"ID THROB",12:"HUM",1:"PULSE",7:"OVERLOAD",6:"BLACKOUT"},bl:[0,0],lv:[1.3,1.196],lt:{S:{9:0.932,11:1.087},R:{6:1.071,12:0.896}},
   XS:[
-  {t:"F",r:1,fr:1.4,fi:.3,pw:1,g:.7475},
-  {t:"B",pt:[[1,1,1,2.76,.4],[2,.4,.5,2.76,.3]],st:[3,5,0,.8,1,.25,1],dc:.45,ps:1.3,g:.6037}],
+  {t:"F",r:1,fr:1.414,fi:2.2,pw:1,vb:5,vd:.04,g:.55},
+  {t:"F",r:1.5,fr:.707,fi:1.4,pw:1.2,vb:.7,vd:.05,g:.35},
+  {t:"K",r:6,hz:3000,q:1,pw:0,j:.9,a:.9,kd:3,g:2}],
   XR:[
-  {t:"P",h:[[1,1],[2,.4],[3,.3],[5,.15]],ps:4,pw:1,g:.301},
-  {t:"B",pt:[[1,1,1],[2.76,.6,.6],[5.4,.4,.4]],st:[3,4,0,.8,1,.25,1],dc:.8,ps:5,g:.2538}]},
- 23:{/*SIREN GRID*/k:"DEEP CRUSTACEAN",p:540,q:96,x:1.3,y:4,g:3,h:55,d:2.6,e:2.4,v:.2,f:1.1,n:.05,m:.08,s:.5,c:.2,o:.5,vb:6,vd:.16,sg:[9,6,13,1],rg:[12,7,11,8],sx:[5],rx:[6],sn:{9:"TRILL",6:"SCAN",13:"CHIRP CHIRP",1:"SWEEP",5:"GLITCH"},rn:{12:"CLICK DRONE",7:"RAMP",11:"SNAP",8:"BUBBLE",6:"DROP"},bl:[0,1.239],lv:[1.243,.5875],lt:{S:{5:.9055,6:1.051,13:.8969},R:{7:1.063}},
+  {t:"F",r:.25,fr:1.414,fi:3,pw:1,vb:.6,vd:.04,g:.5},
+  {t:"T",hz:48,dr:.5,dc:.4,ts:[[0,1],[.3,.9],[.6,.8]],sd:3,g:.45},
+  {t:"P",h:[[1,1],[2,.4],[3,.3],[5,.15]],tr:1.4,td:.8,ps:2,pw:1,g:.25},
+  {t:"K",r:4,hz:2400,q:1,pw:0,j:.9,a:.9,kd:3,g:1.6}]},
+ 23:{/*SIREN GRID · PISTOL CLAW: a crustacean that snaps its claw so fast the water boils (a cavitation bubble that collapses with a crack), chirps and clicks in a long line */k:"DEEP CRUSTACEAN",mt:"WOOD",p:540,q:96,x:1.3,y:4,g:3,h:55,d:2.6,e:2.4,v:.2,f:1.1,n:.05,m:.08,s:.5,c:.2,o:.5,vb:6,vd:.16,sg:[9,6,13,1],rg:[12,7,11,8],sx:[5],rx:[6],sn:{9:"TRILL",6:"SCAN",13:"CHIRP CHIRP",1:"SWEEP",5:"CAVITATE"},rn:{12:"CLICK DRONE",7:"RAMP",11:"SNAP SNAP",8:"BUBBLE",6:"DROP"},bl:[0,1.2],lv:[1.125,0.7102],lt:{S:{6:1.069,13:0.933}},
   XS:[
-  {t:"K",r:30,hz:6500,q:2,pw:1,j:.15,a:.3,g:7.493},
-  {t:"F",r:1,fr:2,fi:.25,pw:1,g:.6221}],
+  {t:"K",r:30,hz:6500,q:2,pw:1,j:.15,a:.3,g:5},
+  {t:"F",r:1,fr:2,fi:.25,pw:1,g:.6},
+  {t:"K",r:2.2,hz:9000,q:.5,pw:0,j:.6,a:.3,kd:.4,g:3.5}],
   XR:[
-  {t:"K",r:24,hz:3000,q:3,pw:.5,j:.2,a:.3,kd:2.5,g:6.919}]},
- 24:{/*GLASS TIDE*/k:"FROST DRAGON",p:1050,q:70,x:2.4,y:3,g:8,h:9,d:2.2,e:2.4,v:.8,f:1.25,n:.3,m:.3,nc:2,b:1.035,r:1.02,s:.5,c:.2,o:.4,ob:2.76,vb:10,vd:.05,lp:3000,sg:[2,1,0,4],rg:[0,9,10,3],sx:[5],rx:[6],sn:{2:"FROST WAIL",1:"SHIVER RISE",0:"ICE SWOOP",4:"FROST WARBLE",5:"CRACK"},rn:{0:"ICE BREATH",9:"FROST BLAST",10:"EXHALE",3:"GLACIER",6:"THAW"},bl:[.7781,1.101],lv:[1.145,.9542],
+  {t:"K",r:24,hz:3000,q:3,pw:.5,j:.2,a:.3,kd:2.5,g:6.9},
+  {t:"K",r:2.5,hz:9000,q:.5,pw:0,j:.6,a:.3,kd:.4,g:6},
+  {t:"T",hz:90,dr:.4,dc:.08,ts:[[.1,1],[.5,.8],[.8,.9]],sd:2,g:.3}]},
+ 24:{/*GLASS TIDE · THREE HEADS: an ice dragon with three throats in a triad, after the three-headed space dragon whose call was a shrill electronic cackle. It laughs, it passes overhead; its breath freezes the air (chirps of cracking frost) */k:"FROST DRAGON",mt:"ICE",p:900,q:70,x:3,y:3,g:8,h:9,d:2.2,e:2.4,v:.8,f:1.25,n:.3,m:.3,nc:2,b:1.26,r:1.02,s:.5,c:.2,o:.45,ob:1.5,vb:10,vd:.04,lp:6000,vs:[[1,1,"sawtooth"],[1.26,.85,"sawtooth"],[1.5,.75,"sawtooth"]],sg:[17,18,2,4],rg:[10,9,0,3],sx:[5],rx:[6],sn:{17:"THREE-HEAD CACKLE",18:"OVERHEAD",2:"FROST WAIL",4:"FROST WARBLE",5:"CRACK"},rn:{10:"ICE BREATH",9:"FROST BLAST",0:"GLACIER",3:"DEEP FREEZE",6:"THAW"},bl:[.9,1],lv:[1.084,0.7051],lt:{S:{2:0.938,4:0.915,5:0.91,17:1.41},R:{10:1.083}},
   XS:[
-  {t:"F",r:1,fr:2.76,fi:.3,pw:.9,vb:6,vd:.01,g:.4655},
-  {t:"N",hz:4000,q:1.5,pw:.5,g:1.13}],
+  {t:"F",r:1,fr:2.76,fi:.6,pw:.9,vb:6,vd:.01,g:.45},
+  {t:"C",n:[2,4],hi:8000,lo:900,cd:.04,g:.6}],
   XR:[
-  {t:"N",hz:1500,q:.8,pw:1.2,g:.7956},
-  {t:"K",r:9,hz:4500,q:2,pw:0,j:.9,a:.9,g:2.316}]},
- 25:{/*INIT*/k:"CODE DRAGON",p:700,q:70,x:6,y:5,g:58,h:22,d:2.1,e:2.8,v:.1,f:.95,n:.25,m:.3,nc:1.1,b:1.014,r:1.012,s:1,c:.5,o:.35,vb:9,vd:.07,bc:[4,.7,300],sg:[0,6,3,9,13],rg:[0,3,2,7,8,13],sx:[5,8],rx:[6,9],sn:{0:"UPLINK",6:"PACKET LOSS",3:"DOUBLE PING",9:"MODEM TRILL",13:"BURST TX",5:"GLITCH",8:"OVERFLOW"},rn:{0:"KERNEL ROAR",3:"CORE DUMP",2:"PING BARK",7:"BOOT SEQUENCE",8:"BIT ROT",13:"OVERCLOCK",6:"SEGFAULT",9:"FORK BOMB"},bl:[.5101,.8179],lv:[.9978,.8818],lt:{S:{5:1.072,8:.924,9:.9508},R:{3:1.055,9:.9572}},
+  {t:"N",hz:3500,q:.7,pw:1.2,g:1.2},
+  {t:"C",n:[6,10],hi:9000,lo:700,cd:.05,sk:.8,g:.8},
+  {t:"K",r:9,hz:4500,q:2,pw:0,j:.9,a:.9,g:2.3}]},
+ 25:{/*INIT · CODE DRAGON: the default creature, a dragon made of data */k:"CODE DRAGON",mt:"ENERGY",p:700,q:70,x:6,y:5,g:58,h:22,d:2.1,e:2.8,v:.1,f:.95,n:.25,m:.3,nc:1.1,b:1.014,r:1.012,s:1,c:.5,o:.35,vb:9,vd:.07,bc:[4,.7,300],sg:[0,6,3,9,13],rg:[0,3,2,7,8,13],sx:[5,8],rx:[6,9],sn:{0:"UPLINK",6:"PACKET LOSS",3:"DOUBLE PING",9:"MODEM TRILL",13:"BURST TX",5:"GLITCH",8:"OVERFLOW"},rn:{0:"KERNEL ROAR",3:"CORE DUMP",2:"PING BARK",7:"BOOT SEQUENCE",8:"BIT ROT",13:"OVERCLOCK",6:"SEGFAULT",9:"FORK BOMB"},bl:[.5101,.8179],lv:[1.006,0.9123],lt:{S:{0:1.074,5:1.078,8:0.889,9:0.933},R:{7:1.092,9:0.865}},
   XS:[
   {t:"F",r:2,fr:1.5,fi:1.2,pw:1,qz:16,g:.2926},
   {t:"K",r:30,hz:2400,q:3,pw:.8,j:.3,a:.4,g:4.129},
@@ -761,8 +830,8 @@ K:(c,y)=>{const n=NZ(c.t,c.e),b=BQ("bandpass",y.hz*c.J.f,y.q||2),cg=G_(0),k=G_(y
  let x=c.t+rr(0,.4/y.r);for(let i=0;i<cap&&x<c.e;i++){const r=y.r*Math.pow(cAt(c.G.c,(x-c.t)/c.d),pw)*(1+.5*c.ag)*c.J.g;cg.gain.setValueAtTime(1-ra*Math.random(),x);cg.gain.setTargetAtTime(0,x+.0004,Math.min(.003*(y.kd||1),.25/r));x+=(1+ja*(Math.random()*2-1))/r}},
 B:(c,y)=>{const ps=y.ps||1,dc=y.dc||.5,out=G_(y.g*c.L),st=y.st||[1,1,0,0,1,1,1],n=Math.round(rr(st[0],st[1]+.49));out.connect(KO());jan.push([out,c.e+dc*12]);
  for(let i=0;i<n;i++){const u=n>1?i/(n-1):0,k=Math.max(0,st[2]+(st[3]-st[2])*Math.pow(u,st[6]||1)+(i&&i<n-1?rr(-.03,.03):0)),am=st[4]+(st[5]-st[4])*u,ts=c.t+k*c.d,fb=c.p*ps*cAt(c.G.c,k)*rr(.985,1.015);
-  y.pt.forEach(([m,pg,dm=1,fR,fI])=>{const f=fb*m,tau=dc*dm;if(f>9000||f<20)return;const o=O("sine",f,ts,ts+tau*7+.1),og=ac.createGain();og.gain.setValueAtTime(.0001,ts);og.gain.linearRampToValueAtTime(am*pg,ts+.003);og.gain.setTargetAtTime(0,ts+.003,tau);o.connect(og);og.connect(out);
-   if(fR){const mo=O("sine",f*fR,ts,ts+tau*3+.1),mg=G_(0);mg.gain.setValueAtTime(f*fI,ts);mg.gain.setTargetAtTime(0,ts,tau*.4);mo.connect(mg);mg.connect(o.frequency)}})}},
+  y.pt.forEach(([m,pg,dm=1,fR,fI],j)=>{const f=fb*m,tau=dc*dm;if(f>9000||f<20||(LITE&&j>5))return;const o=O("sine",f,ts,ts+tau*(LITE?5.5:7)+.1),og=ac.createGain();og.gain.setValueAtTime(.0001,ts);og.gain.linearRampToValueAtTime(am*pg,ts+.003);og.gain.setTargetAtTime(0,ts+.003,tau);o.connect(og);og.connect(out);
+   if(fR&&!LITE){const mo=O("sine",f*fR,ts,ts+tau*3+.1),mg=G_(0);mg.gain.setValueAtTime(f*fI,ts);mg.gain.setTargetAtTime(0,ts,tau*.4);mo.connect(mg);mg.connect(o.frequency)}})}},
 P:(c,y)=>{const o=G_(y.g*(1-(y.td||0))),pw=y.pw??1,ps=y.ps||1;o.connect(c.g);
  y.h.forEach(([h,hg])=>{const f=c.p*ps*h;if(f>12000)return;const s=O("sine",f,c.t,c.e),sg=G_(hg);trk(s.frequency,c.G.c,f,pw,c.t,c.d);s.connect(sg);sg.connect(o)});
  if(y.tr&&y.td){const l=O("sine",y.tr*c.J.g,c.t,c.e),u=ac.createWaveShaper(),a=G_(y.g*y.td);u.curve=curve(x=>(x+1)/2);l.connect(u);u.connect(a);a.connect(o.gain)}},
@@ -771,34 +840,81 @@ F:(c,y)=>{const f0=c.p*(y.ps||1)*(y.r||1),pw=y.pw??1,s=O("sine",f0,c.t,c.e),sg=G
  if(y.vd){const v=O("sine",y.vb||6,c.t,c.e),vg=G_(f0*y.vd);v.connect(vg);vg.connect(s.frequency)}},
 T:(c,y)=>{const hz=y.hz*(LITE?2:1),dc=y.dc||.3,out=G_(y.g*c.L*(LITE?.8:1)),sh=y.sd?sat(y.sd):0,ts=y.ts||[[0,1]];out.connect(KO());jan.push([out,c.e+dc*10]);if(sh)sh.connect(out);
  ts.forEach(([k,am])=>{const s=c.t+k*c.d,o=O("sine",hz*c.J.p,s,s+dc*7+.2),og=ac.createGain();o.frequency.setTargetAtTime(hz*(y.dr||.4),s,dc*.4);og.gain.setValueAtTime(.0001,s);og.gain.linearRampToValueAtTime(am,s+.005);og.gain.setTargetAtTime(0,s+.005,dc);o.connect(og);og.connect(sh||out)});
- if(y.nz){const[nh,nq,ng,nd]=y.nz;ts.forEach(([k,am])=>{const s=c.t+k*c.d,n=NZ(s,s+nd*6+.05),f=BQ("bandpass",nh*c.J.f,nq),g=G_(0);g.gain.setValueAtTime(.0001,s);g.gain.linearRampToValueAtTime(am*ng,s+.003);g.gain.setTargetAtTime(0,s+.003,nd);n.connect(f);f.connect(g);g.connect(out)})}}};
-function xtra(t,P,G,J,S){const X=S?P.XS:P.XR;if(!X)return;const d=(S?P.d:P.e)*(G.d||1)*J.d,L=(S?.4:.48)*(G.l||1)*P.lv[S?0:1],c={t,d,e:t+d,p:(S?P.p:P.q)*J.p,G,J,L,ag:J.a||0};c.g=envP(t,d,G.a,L);X.forEach(y=>XL[y.t](c,y))}
-const call=(S,t,P,G,J)=>{if(P.bl[S?0:1])(S?scream:roar)(t,P,G,J);xtra(t,P,G,J,S)};
+ if(y.nz){const[nh,nq,ng,nd]=y.nz;ts.forEach(([k,am])=>{const s=c.t+k*c.d,n=NZ(s,s+nd*6+.05),f=BQ("bandpass",nh*c.J.f,nq),g=G_(0);g.gain.setValueAtTime(.0001,s);g.gain.linearRampToValueAtTime(am*ng,s+.003);g.gain.setTargetAtTime(0,s+.003,nd);n.connect(f);f.connect(g);g.connect(out)})}},
+/* H formant voice (w \"noise\" = whispered): one thin voice (a human scream, an elephant trumpet, a distant cry) through its own formants [[Hz, Q, gain]] (fp = how far they follow the pitch); jt jitter, am/ad roughness AM, sp [from, to] = the part of the call it sounds in, cc its own pitch contour, x drive */
+H:(c,y)=>{const C=y.cc||c.G.c,f0=c.p*(y.r||1),wn=y.w==="noise",o=wn?NZ(c.t,c.e):O(y.w||"sawtooth",f0,c.t,c.e),og=G_(0),am=G_(1-(y.ad||0)),sp=y.sp||[0,1],a0=c.t+sp[0]*c.d,a1=c.t+sp[1]*c.d;if(!wn)trk(o.frequency,C,f0,y.pw??1,c.t,c.d);
+ og.gain.setValueAtTime(0,c.t);og.gain.setValueAtTime(0,a0);og.gain.linearRampToValueAtTime(y.g,a0+(y.fi||.04));og.gain.setValueAtTime(y.g,Math.max(a0+(y.fi||.04),a1-.12));og.gain.linearRampToValueAtTime(0,a1);og.connect(c.g);
+ if(y.vd&&!wn&&!LITE){const v=O("sine",(y.vb||6)*c.J.g,c.t,c.e),vg=G_(f0*y.vd);v.connect(vg);vg.connect(o.frequency)}if(y.jt&&!wn&&!LITE)jit(c.t,c.e,f0,y.jt).connect(o.frequency);
+ if(y.x){const w=sat(y.x);o.connect(w);w.connect(am)}else o.connect(am);
+ (y.fs||[[900,6,1],[1300,6,.7],[2900,8,.4]]).slice(0,LITE?2:3).forEach(([F,q,gg])=>{const bp=BQ("bandpass",F*c.J.f,q);trk(bp.frequency,C,F*c.J.f,y.fp||0,c.t,c.d);am.connect(bp);if(gg===1)bp.connect(og);else{const bg=G_(gg);bp.connect(bg);bg.connect(og)}});
+ if(y.am&&y.ad){const l=O(y.aw||"sine",y.am*c.J.g,c.t,c.e),u=ac.createWaveShaper(),a=G_(y.ad);u.curve=curve(x=>(x+1)/2);l.connect(u);u.connect(a);a.connect(am.gain)}},
+/* G granular hop: n streams; each grain (gl s long, r per second, j jitter) jumps one oscillator to a random pitch between lo and hi (times the contour^pw): a swarm of tiny calls on 2 nodes per stream */
+G:(c,y)=>{const out=G_(y.g),cap=LITE?70:220;out.connect(c.g);for(let s2=0;s2<(y.n||2);s2++){const o=O(y.w||"sine",y.lo,c.t,c.e),g=G_(0);o.connect(g);g.connect(out);let x=c.t+rr(0,.5/y.r);
+ for(let i=0;i<cap&&x<c.e-.01;i++){const m=Math.pow(cAt(c.G.c,(x-c.t)/c.d),y.pw??1),gl=(y.gl||.03)*rr(.6,1.4);o.frequency.setValueAtTime(X(y.lo,y.hi,Math.random())*m,x);g.gain.setValueAtTime(0,x);g.gain.linearRampToValueAtTime(1-(y.a??.5)*Math.random(),x+gl*.25);g.gain.linearRampToValueAtTime(0,x+gl);x+=Math.max(gl+.001,(1+(y.j??.5)*(Math.random()*2-1))/(y.r*(1+.5*c.ag)))}}},
+/* C dispersive chirps: a sine swept from hi to lo in cd s, n [min, max] times (ice cracking, a struck taut wire); sk skews them early (>1) */
+C:(c,y)=>{const out=G_(y.g),o=O("sine",y.hi,c.t,c.e),g=G_(0),n=Math.round(rr(y.n[0],y.n[1]+.49)),ts=[];o.connect(g);g.connect(out);out.connect(c.g);for(let i=0;i<n;i++)ts.push(c.t+c.d*Math.pow(Math.random(),y.sk||1));ts.sort((a,b2)=>a-b2);let pv=-1;
+ ts.forEach(x=>{const cd=(y.cd||.06)*rr(.7,1.3);x=Math.max(x,pv+.004);if(x>c.e-cd)return;o.frequency.setValueAtTime(y.hi*rr(.75,1.25),x);o.frequency.exponentialRampToValueAtTime(y.lo*rr(.8,1.2),x+cd);g.gain.setValueAtTime(0,x);g.gain.linearRampToValueAtTime(rr(.35,1),x+.0015);g.gain.setTargetAtTime(0,x+.002,cd*.3);pv=x+cd})},
+/* W friction string (a rosined glove dragged on a slack contrabass string, slowed down): rosin noise gated at the stick-slip rate excites a comb tuned to the pitch, through the body resonances bd [[Hz, Q, gain]]; fb ring, lp brightness, x drive. A comb in a loop cannot be shorter than one render block, so its pitch is capped near sr/130. The loop lowpass has no resonant peak (Q -6 dB) and the feedback stays under .97, so the loop gain can never pass 1 */
+W:(c,y)=>{const f0=c.p*(y.ps||1),pw=y.pw??1,n=NZ(c.t,c.e),ex=G_(0),dl=ac.createDelay(.1),fb=G_(Math.min(.97,y.fb||.9)),lp=BQ("lowpass",y.lp||2500,-6),out=G_(y.g),ss=O("sawtooth",f0,c.t,c.e),u=ac.createWaveShaper(),fmax=ac.sampleRate/130,N=Math.max(4,Math.round(c.d*10));
+ u.curve=curve(x=>Math.pow(Math.max(0,(x-.55)/.45),2)*(y.ra||1)+(y.nz||.08));trk(ss.frequency,c.G.c,f0,pw,c.t,c.d);ss.connect(u);u.connect(ex.gain);n.connect(ex);ex.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);
+ for(let i=0;i<=N;i++){const k=i/N,f=Math.min(fmax,f0*Math.pow(cAt(c.G.c,k),pw)),tt=c.t+k*c.d;i?dl.delayTime.linearRampToValueAtTime(1/f,tt):dl.delayTime.setValueAtTime(1/f,tt)}
+ const o2=y.x?sat(y.x):null;if(o2){lp.connect(o2);o2.connect(out)}else lp.connect(out);out.connect(c.g);(y.bd||[]).slice(0,LITE?1:3).forEach(([F,q,gg])=>{const bp=BQ("bandpass",F,q),bg=G_(gg);(o2||lp).connect(bp);bp.connect(bg);bg.connect(out)})}};
+/* lo:1 on a layer = a detail the phone engine skips (the phone engine also strikes bells with their six main partials and no FM shimmer) to keep the audio thread inside its budget. profile helpers. jt [depth, lowpass Hz]: random pitch jitter (a strained throat). sh [from, to, level]: a subharmonic (half the pitch) that switches on and off abruptly mid-call (the register break of a scream). rm [Hz, mix]: ring modulation of the voice. vw [[k, vowel]]: the vowel moves along the call (a roar that says something). */
+const jit=(t,e,p,[dp,lp])=>{const n=NZ(t,e),l=BQ("lowpass",lp,.7),g=G_(p*dp*Math.sqrt(ac.sampleRate/(2*lp))*1.7);n.connect(l);l.connect(g);return g},
+subh=(t,d,G,p,[k0,k1,lv],to,jg)=>{const e=t+d,o=O("sawtooth",p*.5,t,e),g=G_(0),a=t+(k0+rr(-.04,.04))*d,b2=t+(k1+rr(-.04,.04))*d;trk(o.frequency,G.c,p*.5,1,t,d);if(jg)jg.connect(o.frequency);g.gain.setValueAtTime(0,t);g.gain.setValueAtTime(0,a);g.gain.linearRampToValueAtTime(lv,a+.006);g.gain.setValueAtTime(lv,Math.max(a+.006,b2));g.gain.linearRampToValueAtTime(0,Math.max(a+.012,b2+.006));o.connect(g);g.connect(to)},
+ringm=(b0,[hz,mx],t,e)=>{const r=G_(0),o=O("sine",hz,t,e),dr=G_(1-mx),wt=G_(mx*1.4),out=G_(1);o.connect(r.gain);b0.connect(dr);dr.connect(out);b0.connect(r);r.connect(wt);wt.connect(out);return out},
+vwk=(p,vw,j,f,C,t,d,pw)=>{const N=Math.max(6,Math.round(d*8));for(let i=0;i<=N;i++){const k=i/N;let v=vw[0][1];for(let m=0;m<vw.length-1;m++)if(k>=vw[m][0]&&k<=vw[m+1][0]){v=vw[m][1]+(vw[m+1][1]-vw[m][1])*(k-vw[m][0])/Math.max(1e-6,vw[m+1][0]-vw[m][0]);break}else if(k>vw[vw.length-1][0])v=vw[vw.length-1][1];
+ const F=VW(v)[j]*f*Math.pow(cAt(C,k),pw);i?p.exponentialRampToValueAtTime(F,t+k*d):p.setValueAtTime(F,t)}};
+function xtra(t,P,G,J,S){const X=S?P.XS:P.XR;if(!X)return;const d=(S?P.d:P.e)*(G.d||1)*J.d,L=(S?.4:.48)*(G.l||1)*P.lv[S?0:1],c={t,d,e:t+d,p:(S?P.p:P.q)*J.p,G,J,L,ag:J.a||0};c.g=envP(t,d,G.a,L);X.forEach(y=>{if(!(LITE&&y.lo))XL[y.t](c,y)})}
+const call=(S,t,P,G,J)=>{if(P.ys){const cb=G_(1),o=KO(),d=(S?P.d:P.e)*(G.d||1)*J.d,ys=LITE?P.ys.slice(0,2):P.ys,lf=BQ("lowpass",ys[0][2],.6);cb.connect(o);cb.connect(lf);jan.push([cb,t+d+.4]);ys.forEach(([dt,gg,lp],i)=>{const dl=ac.createDelay(2),a=G_(gg*Math.min(1,Math.pow(lp/ys[0][2],.5)));dl.delayTime.value=dt*rr(.92,1.08);lf.connect(dl);dl.connect(a);a.connect(o);jan.push([a,t+d+dt*1.08+.5])});KOX=cb}
+ try{if(P.bl[S?0:1])(S?scream:roar)(t,P,G,J);xtra(t,P,G,J,S)}finally{KOX=null}};
 function voice(k,t){const S=k==="S",P=kv(),T=S?GS:GR,ls=S?P.sg:P.rg,rare=S?P.sx:P.rx,now=ac.currentTime,o=ls.filter(x=>x!==lastG[k]),a=o.length?o:ls;let i=a[Math.random()<.4?0:Math.floor(Math.random()*a.length)];
  if(Math.random()<.1){const s=rare[Math.floor(Math.random()*rare.length)];if(lastG[k]!==s)i=s}
  lastG[k]=i;agit=Math.min(1,agit*Math.exp(-(now-lastVC)/8)+.3);lastVC=now;if(typeof spCall==="function")spCall(S);callTag=(S?P.sn:P.rn)[i]||T[i].n;
- const J={p:rr(.93,1.07)*(1+.12*agit),d:rr(.85,1.2),x:rr(.85,1.15)*(1+.3*agit),g:rr(.9,1.1),f:rr(.92,1.08),a:agit};const lt=P.lt&&P.lt[k]&&P.lt[k][i];call(S,t,P,lt?{...T[i],l:(T[i].l||1)*lt}:T[i],J)}
+ const J={p:rr(.93,1.07)*(1+.12*agit)*HSC,d:rr(.85,1.2),x:rr(.85,1.15)*(1+.3*agit),g:rr(.9,1.1),f:rr(.92,1.08),a:agit};const lt=P.lt&&P.lt[k]&&P.lt[k][i];call(S,t,P,lt?{...T[i],l:(T[i].l||1)*lt}:T[i],J)}
 /* SCREAM: three voices on the pitch contour (the detuned pair beats = roughness, the upper one adds shriek), a chest voice underneath, vibrato, saturation, growl AM, two formants that follow the pitch, and a breath of noise */
 function scream(t,P,G,J){const d=P.d*(G.d||1)*J.d,e=t+d,p=P.p*J.p,f=P.f*J.f,g=envP(t,d,G.a,.4*(G.l||1)*P.lv[0]*P.bl[0]),sh=sat(P.x*J.x),am=G_(.65),b=G_(1),dg=G_(.4),vib=O("sine",P.vb,t,e),vg=G_(p*P.vd),gl=O(P.gt,P.g*J.g,t,e),gg=G_(P.gd),ch=O("sawtooth",p*.46,t,e),cl=BQ("lowpass",1200,1),cg=G_(P.c),n=NZ(t,e),nf=BQ("bandpass",3200*P.nc,.9),ng=G_(P.n);
- vib.connect(vg);gl.connect(gg);gg.connect(am.gain);sh.connect(am);am.connect(dg);dg.connect(b);if(P.lp){const lo=BQ("lowpass",P.lp,.7);b.connect(lo);lo.connect(g)}else b.connect(g);if(P.bc)bcr(b,g,P,1);
- (P.vs||[[1,1,"sawtooth"],[P.b,.8,"sawtooth"],[P.ob,P.o,"square"]]).forEach(([m,a,ty])=>{const o=O(ty,p*m,t,e),og=G_(a);trk(o.frequency,G.c,p*m,1,t,d);vg.connect(o.frequency);o.connect(og);og.connect(sh)});
+ vib.connect(vg);gl.connect(gg);gg.connect(am.gain);sh.connect(am);am.connect(dg);dg.connect(b);const bb=P.rm?ringm(b,P.rm,t,e):b,jg=P.jt&&!LITE?jit(t,e,p,P.jt):null;if(P.lp){const lo=BQ("lowpass",P.lp,.7);bb.connect(lo);lo.connect(g)}else bb.connect(g);if(P.bc)bcr(bb,g,P,1);if(P.sh)subh(t,d,G,p,P.sh,sh,jg);
+ (P.vs||[[1,1,"sawtooth"],[P.b,.8,"sawtooth"],[P.ob,P.o,"square"]]).forEach(([m,a,ty])=>{const o=O(ty,p*m,t,e),og=G_(a);trk(o.frequency,G.c,p*m,1,t,d);vg.connect(o.frequency);if(jg)jg.connect(o.frequency);o.connect(og);og.connect(sh)});
  trk(ch.frequency,G.c,p*.46,.7,t,d);ch.connect(cl);cl.connect(cg);cg.connect(sh);
  (P.fs||[900,2200]).forEach(F=>{const q=BQ("bandpass",F*f,3);trk(q.frequency,G.c,F*f,.5,t,d);am.connect(q);q.connect(b)});n.connect(nf);nf.connect(ng);ng.connect(b)}
 /* ROAR: pitch-contoured saw pair + square sub through tanh, growl AM, three vowel formants that follow the pitch (a falling roar opens then closes), a lowpassed copy for chest weight and a rasp of noise */
 function roar(t,P,G,J){const d=P.e*(G.d||1)*J.d,e=t+d,q=P.q*J.p,f=P.f*J.f,g=envP(t,d,G.a,.48*(G.l||1)*P.lv[1]*P.bl[1]),sh=sat(P.y*J.x),am=G_(.6),b=G_(1),gl=O(P.ht,P.h*J.g,t,e),gg=G_(P.hd),lo=BQ("lowpass",220,.8),lg=G_(P.s),n=NZ(t,e),nf=BQ("bandpass",1400*P.nc,.8),ng=G_(P.m),V=VW(P.v);
- if(P.lp){const o2=BQ("lowpass",P.lp,.7);b.connect(o2);o2.connect(g)}else b.connect(g);if(P.bc)bcr(b,g,P,0);
- (P.rs||[[1,1,"sawtooth"],[P.r,.8,"sawtooth"],[.5,.9,"square"]]).forEach(([m,a,ty])=>{const o=O(ty,q*m,t,e),og=G_(a);trk(o.frequency,G.c,q*m,1,t,d);o.connect(og);og.connect(sh)});
+ const bb=P.rm?ringm(b,P.rm,t,e):b,jg=P.jt&&!LITE?jit(t,e,q,P.jt):null;if(P.lp){const o2=BQ("lowpass",P.lp,.7);bb.connect(o2);o2.connect(g)}else bb.connect(g);if(P.bc)bcr(bb,g,P,0);if(P.sh)subh(t,d,G,q,P.sh,sh,jg);
+ (P.rs||[[1,1,"sawtooth"],[P.r,.8,"sawtooth"],[.5,.9,"square"]]).forEach(([m,a,ty])=>{const o=O(ty,q*m,t,e),og=G_(a);trk(o.frequency,G.c,q*m,1,t,d);if(jg)jg.connect(o.frequency);o.connect(og);og.connect(sh)});
  sh.connect(am);gl.connect(gg);gg.connect(am.gain);
- [[V[0],4,1],[V[1],5,.8],[V[2],5,.5]].forEach(([a0,qq,gn])=>{const x=BQ("bandpass",a0*f,qq),xg=G_(gn);trk(x.frequency,G.c,a0*f,1.5,t,d);am.connect(x);x.connect(xg);xg.connect(b)});
+ [[V[0],4,1],[V[1],5,.8],[V[2],5,.5]].forEach(([a0,qq,gn],j)=>{const x=BQ("bandpass",a0*f,qq),xg=G_(gn);if(P.vw)vwk(x.frequency,P.vw,j,f,G.c,t,d,P.fw??1.5);else trk(x.frequency,G.c,a0*f,P.fw??1.5,t,d);am.connect(x);x.connect(xg);xg.connect(b)});
  am.connect(lo);lo.connect(lg);lg.connect(b);n.connect(nf);nf.connect(ng);ng.connect(b)}
 const HT=[["BRAAAM",t=>{const f=fr(last-(LITE?0:12)),e=t+3.2,g=env(t,.06,e,.22),lp=BQ("lowpass",150,2);lp.frequency.setValueAtTime(150,t);lp.frequency.exponentialRampToValueAtTime(2800,t+.25);lp.frequency.exponentialRampToValueAtTime(260,t+2.8);
   [["sawtooth",1],["sawtooth",1.007],["sawtooth",.993],["square",.5]].forEach(([ty,m])=>{const o=O(ty,f*m*1.05,t,e);o.frequency.exponentialRampToValueAtTime(f*m,t+.2);o.connect(lp)});lp.connect(g)}],
-["IMPACT",t=>impact(t)],
+["IMPACT",t=>impact(t,1,kv().mt,HSC)],
 ["TOLL",t=>{const f=fr(last);[[.5,.5,9],[1,1,8],[1.003,.6,7],[2.76,.5,4.5],[5.4,.3,2.6],[8.93,.18,1.4]].forEach(([m,a,d])=>{const g=env(t,.004,t+d,a*.16),o=O("sine",f*m,t,t+d+.1);o.connect(g)})}],
 ["RISER",t=>{const d=4.6,e=t+d,g=ac.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.35,t+d*.95);g.gain.linearRampToValueAtTime(0,e);g.connect(hbus);jan.push([g,e+.5]);
   const n=NZ(t,e),b=BQ("bandpass",150,5),ng=G_(2);b.frequency.setValueAtTime(150,t);b.frequency.exponentialRampToValueAtTime(7000,e);n.connect(b);b.connect(ng);ng.connect(g);
-  const f=fr(last),o=O("sawtooth",f/2,t,e);o.frequency.exponentialRampToValueAtTime(f*4,e);const lp=BQ("lowpass",300,1),og=G_(.5);lp.frequency.setValueAtTime(300,t);lp.frequency.exponentialRampToValueAtTime(6000,e);o.connect(lp);lp.connect(og);og.connect(g);impact(e)}],
+  const f=fr(last),o=O("sawtooth",f/2,t,e);o.frequency.exponentialRampToValueAtTime(f*4,e);const lp=BQ("lowpass",300,1),og=G_(.5);lp.frequency.setValueAtTime(300,t);lp.frequency.exponentialRampToValueAtTime(6000,e);o.connect(lp);lp.connect(og);og.connect(g);impact(e,1,kv().mt)}],
 ["SCREAM",t=>voice("S",t)],["ROAR",t=>voice("R",t)]];
+/* OFFLINE HIT: builds hit hi on an OfflineAudioContext instead of the live engine (same code, same randomness), so the take can be kept and replayed as a buffer. The live context, the hit buses, the node registry, the janitor and the call memory are swapped out for the build and restored, so nothing live is touched. */
+async function offR(hi,dur,sr,fn){const OC=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!OC||!ac)return null;
+ const oc=new OC(1,Math.ceil(dur*sr),sr);let nn=0;for(const k of ["createGain","createOscillator","createBiquadFilter","createBufferSource","createWaveShaper","createDelay","createStereoPanner","createConvolver","createConstantSource"]){const f=oc[k].bind(oc);oc[k]=(...a)=>{nn++;return f(...a)}}const sv=[ac,hbus,kbus],mem=[agit,lastVC,{...lastG},callTag],L0=jan.length,lv0=new Set(live);
+ const nw=ac.currentTime;try{ac=oc;lastVC-=nw;hbus=oc.createGain();hbus.connect(oc.destination);kbus=null;(fn||HT[hi][1])(.002);offR.n=nn}finally{ac=sv[0];hbus=sv[1];kbus=sv[2];jan.splice(L0);for(const o of live)if(!lv0.has(o))live.delete(o);const tg=callTag;[agit,lastVC]=mem;Object.assign(lastG,mem[2]);callTag=tg}
+ return oc.startRendering()}
+/* HIT PITCH. OCT moves every hit up or down from where it sits: BRAAAM, TOLL and RISER from the last key played (as before), IMPACT and the calls from their own pitch. KEY makes IMPACT and the calls follow the keyboard octave too. The HIT mode (MONSTER panel) decides how a hit gets to its new pitch:
+ SYNTH rebuilds it there (same length, same body, a different note from the same throat). TAPE plays one recorded take faster or slower, like a tape machine or a sampler, so pitch, length and body size move together; the tonal hits are sampled once at C3 and mapped across the keyboard. CRUNCH does the same the way a mid-80s sampler did: the take is stored at 26 kHz and 12 bits and repitched with no interpolation (each stored sample simply held or skipped), so far from the root it aliases and grits.
+ TAPE and CRUNCH takes are built offline in the background (offR) when the kaiju changes, so they cost the audio thread one node; a hit pressed before its take is ready plays as SYNTH. */
+let HOC=0,HIM=0,HSC=1,hGen=0;try{const a=+localStorage.getItem("kj_hoct");if([-2,-1,0,1,2,9].includes(a))HOC=a;HIM=cl(+localStorage.getItem("kj_him")||0,0,2)|0}catch(_){}
+const HTN=[1,0,1,1,0,0],HD=[3.8,6.6,9.6,6.6,7.4,7.4],HROOT=48,hcache=new Map(),hcrx=new Map(),HIMN=["SYNTH","TAPE","CRUNCH"],
+ hSh=()=>HOC===9?oct-3:HOC,hNote=()=>cl(last+12*(HOC===9?0:HOC),12,108),hRate=hi=>HTN[hi]?Math.pow(2,(hNote()-HROOT)/12):Math.pow(2,hSh()),
+ hOctL=()=>"OCT "+(HOC===9?"KEY":HOC>0?"+"+HOC:HOC);
+async function hRen(hi){const k=hi+"|"+cur+"|"+HIM;if(hcache.has(k)||!ac)return;const sr=HIM===2?26040:Math.min(48000,ac.sampleRate),p=offR(hi,HD[hi],sr,t=>{const s0=last;last=HROOT;try{HT[hi][1](t)}finally{last=s0}}),tag=callTag;let b=null;try{b=await p}catch(_){}if(!b)return;
+ const x=b.getChannelData(0);let pk=0,n=x.length;for(let i=0;i<x.length;i++)pk=Math.max(pk,Math.abs(x[i]));if(!(pk>1e-5)||!isFinite(pk))return;const th=pk*3e-4;while(n>1&&Math.abs(x[n-1])<th)n--;n=Math.min(x.length,n+Math.round(.05*sr));
+ const o=new AudioBuffer({length:n,sampleRate:sr,numberOfChannels:1}),y=o.getChannelData(0);if(HIM===2){const q=2047/pk;for(let i=0;i<n;i++)y[i]=Math.round(x[i]*q)/q}else y.set(x.subarray(0,n));
+ hcache.set(k,{b:o,tag});if(hcache.size>12)hcache.delete(hcache.keys().next().value)}
+async function hPre(){const g=++hGen;if(!HIM||!ac)return;for(const hi of [4,5,1,2,0,3]){if(g!==hGen||!HIM)return;await hRen(hi);await nap(40)}}
+const hCr=(b,R)=>{const x=b.getChannelData(0),sr=ac.sampleRate,st=b.sampleRate*R/sr,n=Math.max(1,Math.floor(x.length/st)),o=ac.createBuffer(1,n,sr),y=o.getChannelData(0);for(let i=0;i<n;i++)y[i]=x[Math.floor(i*st)];return o};
+function hPlay(hi){const e=hcache.get(hi+"|"+cur+"|"+HIM);if(!e)return 0;const R=hRate(hi),t=ac.currentTime+.01;let buf=e.b,rate=R;
+ if(HIM===2){const k=hi+"|"+cur+"|"+R.toFixed(5);buf=hcrx.get(k);if(!buf){buf=hCr(e.b,R);hcrx.set(k,buf);if(hcrx.size>8)hcrx.delete(hcrx.keys().next().value)}rate=1}
+ const s=reg(ac.createBufferSource()),g=G_(1),cl2=hi>3;s.buffer=buf;s.playbackRate.value=rate;s.connect(g);g.connect(cl2?KO():hbus);s.start(t);jan.push([g,t+buf.duration/rate+.5]);if(cl2){callTag=e.tag;if(typeof spCall==="function")spCall(hi===4)}return rate}
+
 /* GRAPHICS */
 let CALM=RM;const hero=$("#hero"),bdr=$("#bd"),fl=$("#fl");let ft,hT;
 function flash(a){if(CALM)return;fl.style.transition="none";fl.style.opacity=a;clearTimeout(ft);ft=setTimeout(()=>{fl.style.transition="opacity .5s";fl.style.opacity=0},40)}
@@ -814,7 +930,7 @@ function setScene(id){const h=document.documentElement,f=SCENES[id];
  sceneEl.onload=()=>{if(cur===id)h.classList.add("sc")};sceneEl.onerror=()=>h.classList.remove("sc");sceneEl.src=f}
 LAND.addEventListener?LAND.addEventListener("change",()=>setScene(cur)):LAND.addListener(()=>setScene(cur));
 /* a plate = art + scene + the creature's voice (KV[cur]); the patch is not touched here */
-function plate(id){const src="./"+id+".jpg",g=++plateGen,c=KV[id]&&KV[id].k;cur=id;
+function plate(id){const src="./"+id+".jpg",g=++plateGen,c=KV[id]&&KV[id].k;cur=id;if(HIM&&ready)hPre();
  hero.style.opacity=0;hero.alt="KAIJU "+p2(id)+(c?" ("+c+")":"");setScene(id);
  /* a plate that fails to load just stays dark: no cascade to the next plate, so no stray preset switches (and no panics) when art is missing or offline. */
  if(hero.getAttribute("src")===src&&hero.complete&&hero.naturalWidth){hero.style.opacity=1;return}
@@ -842,7 +958,7 @@ function tab(n){TBN.forEach((m,i)=>{tbs[i].classList.toggle("on",m===n);cols[m].
 let kbus=null,kdip,kair,kgn,kst,kp=null,spM=1,spRoute=-1,spYaw=0,spYawT=0,spRef=null,spGy=false,spLast=0;
 const KZ={az:0,r:3.4,v:0,rT:3.4,pass:null},HC=1.156;/* HC: level match of the HRTF panner to the stereo path, straight ahead (measured offline) */
 try{const v=localStorage.getItem("kj_sp");if(v!==null&&[0,1,2].includes(+v))spM=+v}catch(_){}
-const wrap=a=>((a%360)+540)%360-180,KO=()=>kbus&&kbus.context===ac?kbus:hbus;
+let KOX=null;const wrap=a=>((a%360)+540)%360-180,KO=()=>KOX||(kbus&&kbus.context===ac?kbus:hbus);
 function spBuild(){kbus=G_(1);kbus.channelCount=1;kbus.channelCountMode="explicit";kdip=BQ("peaking",3500,1);kdip.gain.value=0;kair=BQ("lowpass",20000,.7);kgn=G_(0);kst=ac.createStereoPanner();kbus.connect(kdip);kdip.connect(kair);kair.connect(kgn);kair.connect(kbG);kst.connect(ksIn);KZ.az=spYaw+rr(-35,35);KZ.pass=null;spRoute=-1;spRouteSet(true)}
 function spRouteSet(now){if(!kbus)return;const want=spM===2?1:0;if(want===spRoute){spTick(true);return}
  const go=()=>{try{kgn.disconnect()}catch(_){}if(want){if(!kp){kp=ac.createPanner();kp.panningModel="HRTF";kp.distanceModel="inverse";kp.refDistance=1;kp.rolloffFactor=0;kp.connect(ksIn)}kgn.connect(kp)}else kgn.connect(kst);spRoute=want;spTick(true)};
@@ -899,7 +1015,7 @@ let huB=null,spb=null;const hdrag=()=>document.documentElement.classList.toggle(
  Stereo stems feed their own side; front and rear together split 0.8 / 0.6 (the front tilt the book recommends for ambience). SPACE crosses sides in the rears so they stay decorrelated from the fronts; MUSIC and SFX rears run 12 ms late so precedence keeps the image in front. A centre added to the sides is a -6 dB "shouldered" mid feed. Mono stems spread with equal power, front-weighted. The beast pans pairwise between the two active speakers around its bearing, never more than two at once (the Lucasfilm rule).
  LFE: the stem sends are summed, low-passed at 120 Hz (6th order, -48 dB by 300 Hz: the book asks for a steep LFE band limit) and scaled by the SUB energizer, from off to +10 dB in band; the 5.1 file carries it 10 dB down, as the standard expects, and the stereo fold plays it back at full weight.
  What you hear: STEREO (FIXED or ROAM) is a power fold of each stem's routing, the rear part tinted by the front-to-rear timbre dip of Fig. 6-1; ROAM 3D renders the rears as virtual speakers (HRTF at +/-110 degrees) for headphones; OUT 5.1 (offered only on a 6-channel output) plays the bed itself. The 5.1 print records the bed through the same master compression as the stereo program, applied as one linked gain, so all six channels move together. */
-const KJ_BUILD="B16.9 · NOV 23";try{console.info("KAIJU-BLUE // DREAD ORGAN · "+KJ_BUILD)}catch(_){}
+const KJ_BUILD="B17.0 · NOV 23";try{console.info("KAIJU-BLUE // DREAD ORGAN · "+KJ_BUILD)}catch(_){}
 const AR_SP=["L","R","C","LFE","LS","RS"],AR_5=["L","R","C","LS","RS"],AR_A={L:-30,R:30,C:0,LS:-110,RS:110},AR_RE={LS:1,RS:1},AR_TAU=.012,AR_K=.35,AR_N2=1/Math.sqrt(1+.35*.35),arPairOn=B=>((B.L||0)+(B.R||0)+(B.C||0))>1e-4&&((B.LS||0)+(B.RS||0))>1e-4,AR_F={L:[1,0],R:[0,1],C:[.7071,.7071],LS:[1,0],RS:[0,1]},
  AR_S=["MUS","BST","SFX","SPC"],AR_N={MUS:"MUSIC",BST:"BEAST",SFX:"SFX",SPC:"SPACE"},AR_C={MUS:"58,216,255",BST:"255,59,107",SFX:"255,176,46",SPC:"165,139,255"},AR_LC="182,255,59",
  AR_PRE={STAGE:{MUS:"L R",BST:"L R C LS RS",SFX:"C",SPC:"L R LS RS",sub:"BST SFX"},WRAP:{MUS:"L R C LS RS",BST:"L R C LS RS",SFX:"L R C",SPC:"L R LS RS",sub:"MUS BST SFX"},FRONT:{MUS:"L R",BST:"L R C LS RS",SFX:"C",SPC:"L R",sub:"BST SFX"}},
@@ -1036,6 +1152,7 @@ const chip=(par,txt,on,fn)=>{const b=document.createElement("button");b.classNam
 {const[pl,pr]=cols.PLAY;let g=pn(pl,"LAYERS");LN.forEach(([n,k])=>{lyb[k]=chip(g,n,L[k],b=>{L[k]=L[k]?0:1;b.classList.toggle("on",!!L[k])})});
  g=pn(pr,"VOICING");const vb=VC.map(([n],i)=>chip(g,n,i===vi,()=>{vi=i;vb.forEach((x,j)=>x.classList.toggle("on",j===i))}));vbs=vb;
  HT.forEach(([n,fn],hi)=>{const b=chip($("#hits"),n,0,()=>{});b.classList.add("pad");b.onpointerdown=e=>{e.preventDefault();hitK(hi)};b.onclick=e=>{if(ready&&e.isTrusted&&!e.detail)hitK(hi)}/* detail 0 = keyboard Enter/Space; pointer and synthesized-touch clicks are already handled by pointerdown */});
+ {const ob=chip($("#hits"),hOctL(),0,()=>{HOC=[-2,-1,0,1,2,9][([-2,-1,0,1,2,9].indexOf(HOC)+1)%6];ob.textContent=hOctL();ob.classList.toggle("on",HOC!==0);try{localStorage.setItem("kj_hoct",HOC)}catch(_){}toast(HOC===9?"HITS FOLLOW THE KEYBOARD OCTAVE":"HIT OCTAVE "+(HOC>0?"+":"")+HOC)});ob.classList.add("pad","hoct");ob.classList.toggle("on",HOC!==0);ob.setAttribute("aria-label","HIT OCTAVE")}
  KB(pl,"SENDS",["rv","ec","en","gr"]);
  g=pn(pr,"MACROS");g.classList.add("g2");[["dread","DREAD"],["rage","RAGE"],["ghost","GHOST"],["swell","SWELL"],["susp","SUSPENSE"],["sing","SING"]].forEach(([m,l])=>knob(g,l,()=>MV[m],v=>{MV[m]=v;refresh();apply()},1))}
 {const[tl,tr]=cols.TONE;KB(tl,"LAYER LEVELS",["lvC","lvS","lvO","lvB","lvA"]);KB(tl,"ENVELOPE",["atk","rel"]);KB(tr,"VOICE",["det","vib","trm","vow"]);KB(tr,"FILTER",["cut","res","lfoR","lfoD"]);PW["LAYER LEVELS"][0].querySelector(".kg").classList.add("g2")}
@@ -1060,10 +1177,12 @@ const PRE0=PRE.slice();/* stock order, for the PREV / NEXT chips and arrow keys 
 /* PLATE ORDER: PRE[i] is the patch loaded with plate i+1. Every patch keeps its name and sound; this list only pairs each one with the creature it fits (reorder it to re-pair). */
 {const O=["ABYSS CALL","DROWNED ORGAN","IRON DREAD","PALE LEVIATHAN","AMBER ALARM","ECLIPSE","RADIANT BURN","STORM TEETH","SPORE BLOOM","LAST LIGHT","DEEP TREMOR","NIGHT CHOIR","FROZEN MAW","TIDAL WAKE","BONE ORGAN","MAGMA SPINE","SUNKEN BELLS","VOID LANTERN","HOLLOW CHOIR","ASH CATHEDRAL","RUST HYMN","COLD SIGNAL","SIREN GRID","GLASS TIDE"],M=new Map(PRE.map(p=>[p.n,p]));if(O.every(n=>M.has(n)))PRE.splice(0,PRE.length,...O.map(n=>M.get(n)))}
 /* STARTING LEVELS: master LEVEL per built-in preset so a single held key peaks about -8 dBFS before the output limiter, measured separately for the full engine (PVF) and for LITE (PVL), which runs about 2 to 3 dB hotter (only the hotter presets were trimmed, quieter ones are untouched). Bounces tap before the limiter, so they keep full float headroom. */
-const PVF={"PALE LEVIATHAN":0.612,"NIGHT CHOIR":0.507,"DEEP TREMOR":0.793,"FROZEN MAW":0.62,"TIDAL WAKE":0.72,"DROWNED ORGAN":0.75,"HOLLOW CHOIR":0.53,"ABYSS CALL":0.68,"AMBER ALARM":0.633,"MAGMA SPINE":0.663,"STORM TEETH":0.592,"VOID LANTERN":0.7,"RADIANT BURN":0.551,"ECLIPSE":0.511,"ASH CATHEDRAL":0.975,"SPORE BLOOM":0.65},PVL={"VOID LANTERN":0.579,"LAST LIGHT":0.605,"STORM TEETH":0.526,"DEEP TREMOR":0.691,"TIDAL WAKE":0.618,"IRON DREAD":0.836,"FROZEN MAW":0.53,"RADIANT BURN":0.539,"ECLIPSE":0.47,"ABYSS CALL":0.5,"NIGHT CHOIR":0.479,"SPORE BLOOM":0.5,"PALE LEVIATHAN":0.474,"MAGMA SPINE":0.483,"ASH CATHEDRAL":0.55,"AMBER ALARM":0.583,"HOLLOW CHOIR":0.533,"DROWNED ORGAN":0.627},PV=LITE?PVL:PVF;PRE.forEach(p=>{if(PV[p.n]!==undefined)p.k=Object.assign({},p.k,{vol:PV[p.n]})});
+const PVF={"PALE LEVIATHAN":0.612,"NIGHT CHOIR":0.507,"DEEP TREMOR":0.793,"FROZEN MAW":0.62,"TIDAL WAKE":0.72,"DROWNED ORGAN":0.75,"HOLLOW CHOIR":0.53,"ABYSS CALL":0.68,"AMBER ALARM":0.633,"MAGMA SPINE":0.663,"STORM TEETH":0.592,"VOID LANTERN":0.7,"RADIANT BURN":0.551,"ECLIPSE":0.511,"ASH CATHEDRAL":0.975,"SPORE BLOOM":0.65},PVL={"VOID LANTERN":0.579,"LAST LIGHT":0.605,"STORM TEETH":0.526,"DEEP TREMOR":0.691,"TIDAL WAKE":0.618,"IRON DREAD":0.836,"FROZEN MAW":0.53,"RADIANT BURN":0.539,"ECLIPSE":0.47,"ABYSS CALL":0.5,"NIGHT CHOIR":0.479,"SPORE BLOOM":0.5,"PALE LEVIATHAN":0.474,"MAGMA SPINE":0.483,"ASH CATHEDRAL":0.55,"AMBER ALARM":0.583,"HOLLOW CHOIR":0.533,"DROWNED ORGAN":0.627},PV=LITE?PVL:PVF;{const HT2={"MAGMA SPINE":.7,"SIREN GRID":.72,"STORM TEETH":.8};for(const n in HT2){PVF[n]=(PVF[n]||.9)*HT2[n];PVL[n]=(PVL[n]||.9)*HT2[n]}}PRE.forEach(p=>{if(PV[p.n]!==undefined)p.k=Object.assign({},p.k,{vol:PV[p.n]})});
 /* SWELL TAILS: BLOOM (loop gain >1) + an echo send = a tail that GROWS after note-off by the SWELL height, rounds over a crest and falls away evenly (see TAIL CONTOUR). LIFE caps the whole shape; HOLD locks it. */
-{const SW={FAST:{ec:.25,ecFb:.35,bloom:.95,ecTime:.4,ecTone:.35,ecSpr:.6},BIG:{ec:.3,ecFb:.3,bloom:1,ecTime:.5,ecTone:.3,ecSpr:.6},MED:{ec:.3,ecFb:.5,bloom:.75,ecTime:.55,ecTone:.3,ecSpr:.6},CREEP:{ec:.35,ecFb:.35,bloom:.85,ecTime:.7,ecTone:.3,ecSpr:.6}},
- W={"ABYSS CALL":"BIG","SUNKEN BELLS":"CREEP","FROZEN MAW":"FAST","TIDAL WAKE":"MED","LAST LIGHT":"BIG","DEEP TREMOR":"CREEP","PALE LEVIATHAN":"CREEP","SPORE BLOOM":"FAST","VOID LANTERN":"MED","ECLIPSE":"FAST"};
+{const SW={FAST:{ec:.25,ecFb:.35,bloom:.95,ecTime:.4,ecTone:.35,ecSpr:.6},BIG:{ec:.3,ecFb:.3,bloom:1,ecTime:.5,ecTone:.3,ecSpr:.6},MED:{ec:.3,ecFb:.5,bloom:.75,ecTime:.55,ecTone:.3,ecSpr:.6},CREEP:{ec:.35,ecFb:.35,bloom:.85,ecTime:.7,ecTone:.3,ecSpr:.6},
+  SLAM:{ec:.3,ecFb:.42,bloom:.95,ecTime:.42,ecTone:.3,ecSpr:.55},NAVE:{ec:.32,ecFb:.4,bloom:.9,ecTime:.62,ecTone:.28,ecSpr:.7},GLINT:{ec:.3,ecFb:.42,bloom:.92,ecTime:.48,ecTone:.55,ecSpr:.8},RING:{ec:.35,ecFb:.45,bloom:.95,ecTime:.7,ecTone:.3,ecSpr:.7}},
+ W={"ABYSS CALL":"BIG","SUNKEN BELLS":"CREEP","FROZEN MAW":"FAST","TIDAL WAKE":"MED","LAST LIGHT":"BIG","DEEP TREMOR":"CREEP","PALE LEVIATHAN":"CREEP","SPORE BLOOM":"FAST","VOID LANTERN":"MED","ECLIPSE":"FAST",
+  "DROWNED ORGAN":"NAVE","IRON DREAD":"SLAM","AMBER ALARM":"MED","RADIANT BURN":"BIG","STORM TEETH":"SLAM","NIGHT CHOIR":"NAVE","BONE ORGAN":"NAVE","MAGMA SPINE":"SLAM","HOLLOW CHOIR":"NAVE","ASH CATHEDRAL":"NAVE","RUST HYMN":"SLAM","COLD SIGNAL":"GLINT","SIREN GRID":"RING","GLASS TIDE":"GLINT"};
  PRE.forEach(p=>{if(W[p.n])p.k=Object.assign(p.k||{},SW[W[p.n]])})}
 const MN=["dread","rage","ghost","swell","susp","sing"];
 /* UNDO: every patch switch (monster, slot, default, import, link) first stashes the live patch once powered; UNDO / Backspace swaps back, and again to redo */
@@ -1222,7 +1341,7 @@ const slots=()=>{try{return JSON.parse(localStorage.getItem("kj_slots"))||[]}cat
  vis(oB,!LITE&&!!AC&&"setSinkId" in AC.prototype&&!!navigator.mediaDevices);aB.style.borderColor="rgba(255,59,107,.7)";
  suUI=()=>{const x=CFG.x;if(xB)xB.textContent=xLab();rB.textContent="RATE "+xRate(x.r);dB.textContent="DEPTH "+(x.b===32?"32F":x.b);kB.textContent="PEAK "+XK[x.k];eR.textContent="ENGINE "+ENG_R[erI()][0];eB.textContent="BUFFER "+ENG_B[ebI()][0];oB.textContent="OUT "+(CFG.sink?CFG.sinkN||"DEVICE":"DEFAULT");iB.textContent=engInfo();vis(aB,engPend())};
  suToggle=()=>{const w=PW.SETUP[0];w.hidden=!w.hidden;CFG.so=w.hidden?0:1;cfgSave();suUI();toast(w.hidden?"SETUP CLOSED":"SETUP: EXPORT AND ENGINE")};suUI()}
- g=pn(cols.OUT[0],"MONSTER");chip(g,"PREV",0,()=>pstep(-1)).setAttribute("aria-label","PREVIOUS STOCK PRESET");chip(g,"NEXT",0,()=>pstep(1)).setAttribute("aria-label","NEXT STOCK PRESET");chip(g,"RANDOM",0,()=>go(0)).setAttribute("aria-label","RANDOM KAIJU");chip(g,"DEFAULT",0,toDefault).setAttribute("aria-label","DEFAULT PATCH AND KAIJU");chip(g,"UNDO",0,()=>undo());
+ g=pn(cols.OUT[0],"MONSTER");chip(g,"PREV",0,()=>pstep(-1)).setAttribute("aria-label","PREVIOUS STOCK PRESET");chip(g,"NEXT",0,()=>pstep(1)).setAttribute("aria-label","NEXT STOCK PRESET");chip(g,"RANDOM",0,()=>go(0)).setAttribute("aria-label","RANDOM KAIJU");chip(g,"DEFAULT",0,toDefault).setAttribute("aria-label","DEFAULT PATCH AND KAIJU");chip(g,"UNDO",0,()=>undo());{const mb=chip(g,"HIT "+HIMN[HIM],HIM>0,()=>{HIM=(HIM+1)%3;mb.textContent="HIT "+HIMN[HIM];mb.classList.toggle("on",HIM>0);try{localStorage.setItem("kj_him",HIM)}catch(_){}hcache.clear();hcrx.clear();hGen++;if(HIM&&ready)hPre();toast(["HIT SYNTH: EVERY HIT IS BUILT AT ITS PITCH","HIT TAPE: ONE TAKE, SPEED AND PITCH MOVE TOGETHER","HIT CRUNCH: 26K 12-BIT TAKE, NO INTERPOLATION"][HIM])});mb.setAttribute("aria-label","HIT PITCH MODE")}
  tkp=pn(cols.OUT[0],"TAKES");PW.TAKES[0].hidden=true;
  KB(cols.OUT[1],"MASTER",["vol","hp"]);
  {const q=pn(cols.OUT[1],"ACCESS");let ls={};try{ls=JSON.parse(localStorage.getItem("kj_a11y"))||{}}catch(_){}
@@ -1276,7 +1395,7 @@ const KC={KeyA:0,KeyW:1,KeyS:2,KeyE:3,KeyD:4,KeyF:5,KeyT:6,KeyG:7,KeyY:8,KeyH:9,
 /* BT / TYPING KEYS: A..' piano row = single notes (drone when VOICING=DRONE); Z..M = 7 chords of C minor at the current octave; Caps Lock = hold; Space = panic; 1-6 = hit pads; Left / Right = stock presets (Shift+Left / Right = kaiju in order); Enter = random kaiju */
 const CHD=[["C MIN",0,[0,3,7]],["D DIM",2,[0,3,6]],["E♭ MAJ",3,[0,4,7]],["F MIN",5,[0,3,7]],["G MIN",7,[0,3,7]],["A♭ MAJ",8,[0,4,7]],["B♭ MAJ",10,[0,4,7]]],
 pvC=()=>VC[vi===1?1:0][1],keyC=e=>e.code&&e.code!=="Unidentified"?e.code:/^[a-z]$/i.test(e.key)?"Key"+e.key.toUpperCase():e.key===";"?"Semicolon":e.key==="'"?"Quote":e.key===" "?"Space":e.key,
-hitK=hi=>{init();oneArm();hu.act=performance.now();lastHit=Math.max(lastHit,ac.currentTime+9);gvT0=Math.max(gvT0,ac.currentTime+HG[hi]);wshHE=gvT0;wshHi=hi;wshLive(.08);HT[hi][1](ac.currentTime+.01);radarPing([fr(last),42,fr(last),180,kv().p*2,kv().q][hi]||80,HT[hi][0]+(hi>3?" · "+callTag:""));pulse()}/* SCREAM / ROAR show their call (e.g. ROAR · HOWL) in the HUD */;let capsOn=null;
+hitK=hi=>{init();oneArm();hu.act=performance.now();lastHit=Math.max(lastHit,ac.currentTime+9);const hr=HIM?hPlay(hi):0;if(!hr){const s0=last;HSC=HTN[hi]?1:Math.pow(2,hSh());if(HTN[hi])last=hNote();try{HT[hi][1](ac.currentTime+.01)}finally{last=s0;HSC=1}}gvT0=Math.max(gvT0,ac.currentTime+HG[hi]/(hr||1));wshHE=gvT0;wshHi=hi;wshLive(.08);radarPing([fr(last),42,fr(last),180,kv().p*2,kv().q][hi]||80,HT[hi][0]+(hi>3?" · "+callTag:""));pulse()}/* SCREAM / ROAR show their call (e.g. ROAR · HOWL) in the HUD */;let capsOn=null;
 const capsSync=(e,own)=>{if(!e.getModifierState)return;const c=e.getModifierState("CapsLock");if(own){if(e.type==="keyup"||c){setHold(c);capsOn=c}}else{if(capsOn!==null&&c!==capsOn)setHold(c);capsOn=c}};
 addEventListener("keydown",e=>{if(isTx(e.target))return;const c=keyC(e);if(c==="CapsLock"){capsSync(e,1);return}capsSync(e,0);
  if(!ready||e.repeat||e.ctrlKey||e.metaKey||e.altKey)return;
@@ -1321,7 +1440,7 @@ async function power(){if(st===1)return;if(st!==2&&spM)spGyro();
  let ok=false;try{init();await Promise.race([ac.resume(),nap(2500)]);ok=ac.state==="running";if(ok)await Promise.race([limP||0,nap(1500)]);if(ok&&!warmed){await Promise.race([warm(),nap(6000)]);warmed=true}}catch(_){}
  if(!ok){st=0;blocked=true;pw.className="off";return}blocked=false;
  try{const t=ac.currentTime;wm.gain.cancelScheduledValues(t);wm.gain.setValueAtTime(0,t);wm.gain.linearRampToValueAtTime(1,t+.15)}catch(_){}
- st=2;ready=true;dgStart();midiInit();wlOn();if(!ac.audioWorklet&&!engWarned){engWarned=1;showErr(window.isSecureContext===false?"HTTP PAGE: AUDIO WORKLETS OFF, FALLBACKS RUN ON THE MAIN THREAD (CRACKLE RISK). SERVE IT OVER HTTPS":"NO AUDIO WORKLETS IN THIS BROWSER: FALLBACKS RUN ON THE MAIN THREAD")}devWatch();suUI();arUiStatic();pw.className="on";pw.setAttribute("aria-pressed",true);$("#app").classList.add("pwr")}
+ st=2;ready=true;dgStart();if(HIM)hPre();midiInit();wlOn();if(!ac.audioWorklet&&!engWarned){engWarned=1;showErr(window.isSecureContext===false?"HTTP PAGE: AUDIO WORKLETS OFF, FALLBACKS RUN ON THE MAIN THREAD (CRACKLE RISK). SERVE IT OVER HTTPS":"NO AUDIO WORKLETS IN THIS BROWSER: FALLBACKS RUN ON THE MAIN THREAD")}devWatch();suUI();arUiStatic();pw.className="on";pw.setAttribute("aria-pressed",true);$("#app").classList.add("pwr")}
 pw.onclick=power;
 /* DROPOUT GUARD: Chrome counts the audio blocks it could not render in time (ac.playbackStats, Chrome 146+; other browsers have no counter and the guard stays off). While notes sound, 3 dropouts or 30 ms lost inside 20 s means this device cannot keep up at the current engine setting. Each trip steps ENGINE one notch safer and SAVES it, so the next launch (or SETUP > APPLY) starts clean; the first trip also halves the redraw rate to free the CPU now. At the safest setting it says so once. One step per 30 s, the first 4 s after POWER and silent time never count. */
 let dgE=0,dgD=0,dgW=[],dgT0=0,dgLast=0,dgOn=0;
