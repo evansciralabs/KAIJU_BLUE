@@ -6,128 +6,219 @@ Claude, by Anthropic
 
 **KAIJU-BLUE: USER GUIDE**
 
-KAIJU-BLUE loads a random kaiju (giant monster) with its own matching sound onto the PLAY tab, which you play by touch, computer keyboard or MIDI keyboard, shape with dials, and record as a ready-to-use audio file.
+KAIJU-BLUE is a monster sound instrument that loads a random kaiju (giant monster) with its own matching sound, ready to play, shape and record.
 
-**What it can do**
-- Load a random kaiju and matching sound with one tap
-- Play by touch, computer keyboard or MIDI keyboard
-- Play single notes, chords and one-shot monster hits
-- Hold, freeze and pulse a sound, or fade it out
-- Move the kaiju around you in 3D, or hunt it
-- Send sound to 5.1 surround speakers
-- Record takes in stereo, mono or 5.1, named by scene and take
-- Save, export and share your patches
-- Send takes to OSSUARY for finishing
+---
 
-**1. Get started**
-1. Tap the power button in the corner.
-2. From the PLAY tab, play with any method in sections 2 to 4.
+**1. Getting started**
 
-**2. Play by touch**
-1. From the PLAY tab, tap the keys on screen.
-2. Tap BRAAAM, IMPACT, TOLL, RISER, SCREAM or ROAR to fire a hit (a one-shot monster sound).
-3. Tap OCTAVE UP or OCTAVE DOWN to change pitch range.
+This section turns it on, gets you playing and shows you where everything is.
 
-**3. Play by computer keyboard**
-1. Press A, S, D, F, G, H, J, K, L, ; and ' for the white piano keys.
-2. Press W, E, T, Y, U, O and P for the black piano keys.
-3. Press Z, X, C, V, B, N or M for the chords C MIN, D DIM, E♭ MAJ, F MIN, G MIN, A♭ MAJ or B♭ MAJ.
-4. Press 1 to 6 to fire the six hits.
-5. Press the up or down arrow, or . and , to change octave.
-6. Press Caps Lock to hold.
-7. Press Q to duck the wash (lower the tail under new notes), and press Q again to bring it back.
-8. Press Space to stop all sound.
-9. Press Backspace to undo.
-10. Press the left or right arrow for the previous or next stock preset.
-11. Press Shift with the left or right arrow for the previous or next kaiju.
-12. Press Enter for a random kaiju.
+1. Tap the power button in the top left corner to turn it on.
+2. Play by touch: tap the keys along the bottom of the screen. This needs no extra gear.
+3. Play by computer keyboard: press A to ' for notes and 1 to 6 for hits. Both hands stay free, so notes and hits can overlap.
+4. Play by MIDI keyboard: connect it and open KAIJU-BLUE in Chrome or Edge. You get a real keyboard feel, a sustain pedal and a volume control.
+5. Fire a hit: tap BRAAAM, IMPACT, TOLL, RISER, SCREAM or ROAR. BRAAAM, TOLL and RISER follow the last key you pressed. Example: hold a chord, fire RISER, then land on BRAAAM.
+6. Set the hit octave: tap OCT 0 to move the hits up or down by up to two octaves, or to KEY so they follow the keyboard's octave.
+7. Set the keyboard octave: tap − or +.
+8. Change the sound: tap TONE for the sound itself, FX for effects, or OUT for recording, saving and kaiju.
+9. Turn a dial: press it and drag up or down. On a computer, hold Shift while dragging for fine control. Dials are set on screen, and MIDI does not control them.
+10. Load a different kaiju: tap OUT, then tap RANDOM for a new kaiju, or DEFAULT for the custom house kaiju. Tap PREV or NEXT to step through a bank of generic stock presets.
+11. Tap the eye icon in the top right corner to hide or show the controls.
 
-**4. Play by MIDI keyboard**
-1. Connect the MIDI keyboard to your device.
-2. Open KAIJU-BLUE in a browser that supports Web MIDI, such as Chrome or Edge.
-3. Play the keys.
-4. Tap OCTAVE UP or OCTAVE DOWN to shift the keyboard's range.
-5. Press the sustain pedal to hold.
-6. Move the volume control (controller 7) to change master volume.
-7. Send "all notes off" (controller 123) to stop all sound.
+---
 
-**5. Choose how each key sounds**
-1. From the PLAY tab, tap SOLO for single notes.
-2. Tap DRONE for a held three-note drone.
-3. Tap MINOR, DIM7 or CLUSTER to play a chord from a single key.
-4. Tap CHOIR, STRINGS, ORGAN, BELL or ABYSS to switch that layer on or off.
+**2. The PLAY tab**
 
-**6. Shape the sound**
-1. From the PLAY tab, drag DREAD, RAGE, GHOST, SWELL, SUSPENSE or SING.
-2. Drag REVERB, ECHO, ENSEMBLE or GRIT.
-3. Tap TONE and drag the dials.
-4. Tap FX and drag the dials.
-5. Tap NEXT DIAL SET or PREVIOUS DIAL SET for more dials.
+The PLAY tab is for performing: layers, chords, effect amounts, macros and hits.
 
-**7. Hold, freeze, pulse, fade, panic**
-1. Tap HOLD to lock the notes and tail.
-2. Play a note, then tap FREEZE to keep that sound sounding at a steady level.
-3. Tap FREEZE again to let go.
-4. Tap PULSE to turn on a pulsing repeat of the sound.
-5. Tap PULSE again to turn it off.
-6. Press and hold FREEZE or PULSE to open its dials.
-7. Tap PANIC to stop all sound.
+**Top bar (on every tab)**
+- **PLAY, TONE, FX, OUT:** switch the main panel.
+- **HOLD:** keeps the notes and their tail sounding after you let go. Use it to play over a held chord. (Caps Lock)
+- **FREEZE:** captures the last couple of seconds and holds them as a slowly shifting cloud. Tap again to let go. Freezing again adds another cloud on top. Example: play a chord, tap FREEZE, then play over it.
+- **PULSE:** chops held notes into a rhythm with a tempo clock. Tap again to mute it. Example: tap HOLD on a chord, then tap PULSE.
+- **PANIC:** stops all sound at once. (Space)
+- **Long-press FREEZE or PULSE** (or Shift-click on a computer) to open their dials:
+  - FRZ LEVEL: volume of the frozen cloud
+  - GRAIN: size of the grains in the cloud
+  - SPRAY: how scattered the cloud is
+  - FRZ PITCH: pitch of the grains
+  - PULSE: mutes or unmutes the rhythm
+  - COUNT-IN: two bars of clicks before the rhythm starts
+  - RESET: stops the clock
+  - TEMPO: speed (40 to 180 BPM)
+  - DIVISION: step length (1/4, 1/8, 1/8 triplet, 1/16)
+  - GATE DEPTH: how deeply each step cuts the sound
+  - GATE SHAPE: how long each step takes to fade
+  - TICK: volume of the click
+  - TEMPO RAMP: speeds up or slows down over time
+  - ACCENT: softens the off-beat steps
+  - RHYTHM: STEADY, ACCEL, CATCH, BOUNCE or BALLS
+  - RESTITUTION: how bouncy BOUNCE and BALLS are
+  - TICK CHAR: click sound (CLOCK, WOOD, EGG TIMER or PING)
+  - TICK ROOM and ROOM SIZE: a small room around the click
+  - TICK > FX: sends the click into reverb and echo
 
-**8. Change the kaiju**
-On the OUT tab:
-1. Tap RANDOM KAIJU for a new kaiju and sound.
-2. Tap NEXT STOCK PRESET or PREVIOUS STOCK PRESET to step through the built-in sounds.
-3. Tap UNDO to go back.
-4. Tap DEFAULT PATCH AND KAIJU to return to the start.
+**Effect amounts (left dials)**
+- **REVERB:** the sound of a large space.
+- **ECHO:** repeating echoes.
+- **ENSEMBLE:** a thicker, wavering group sound.
+- **GRIT:** distortion.
 
-**9. Move the kaiju in space**
-On the OUT tab:
-1. Tap the ROAM chip to switch between ROAM, ROAM 3D and FIXED.
-2. Turn your device or head to follow the kaiju.
-3. Tap HUNT, face the kaiju and hold to capture it.
-4. Turn your back and keep still to hide.
-5. Tap HUNT again to turn it off.
-6. Tap the FULL chip to switch between FULL and SPEAKER.
-7. Tap ARRAY to open SONAR ARRAY.
-8. Pick MUSIC, BEAST, SFX or SPACE, then tap the speakers (L, R, C, LS, RS, SUB) to send that layer to them.
-9. Tap SCENE, STAGE, WRAP or FRONT for a ready-made layout.
+**Macros (right dials)**
+A macro moves several dials at once.
+- **DREAD:** darker and deeper, in a bigger space.
+- **RAGE:** harsher, with more grit and tremble.
+- **GHOST:** pale and wavering, like a voice.
+- **SWELL:** slower fade-in and fade-out.
+- **SUSPENSE:** echoes build into a growing wash.
+- **SING:** echoes ring on like a held tone.
 
-**10. Hit style, duck and fade**
-On the OUT tab:
-1. Tap HIT SYNTH to switch between HIT TAPE, HIT CRUNCH and HIT SYNTH.
-2. Tap DUCK to lower the tail under new notes, and tap again to bring it back.
-3. Tap FADE to fade everything out (4 seconds to start).
-4. Press and hold FADE to change the fade length.
+**Layers (left buttons)**
+Tap to switch on or off. Lit means on.
+- CHOIR, STRINGS, ORGAN, BELL and ABYSS (a deep, low layer).
 
-**11. Record a take**
-On the OUT tab:
-1. Tap the STEREO chip to switch between STEREO, MONO and 5.1.
-2. Tap SC to set the scene number (01 to 99); takes restart at 01.
-3. Tap REC, play, then tap STOP.
-4. For a single hit, tap ONESHOT (it shows ARMED), then play the hit. Recording starts and stops by itself.
-5. Tap LEN to set the longest a one-shot take can run (6, 12, 20 or 30 seconds).
-6. Tap LIFE to set the tail length (10, 20 or 30 seconds).
-7. Tap the take chip (for example T1) to hear it.
+**Voicing (right buttons)**
+Sets what each key plays.
+- **SOLO:** one note.
+- **DRONE:** note, fifth and octave together.
+- **MINOR:** minor chord.
+- **DIM7:** tense four-note chord.
+- **CLUSTER:** tight, dissonant cluster.
 
-Takes are named by patch, scene and take, for example KAIJU_STORM-TEETH_SC01_T01_OS_48k24.wav.
+**Hits and octave**
+- **BRAAAM, IMPACT, TOLL, RISER, SCREAM, ROAR:** one-shot monster sounds. BRAAAM, TOLL and RISER follow the last key you played. IMPACT, SCREAM and ROAR change pitch only with OCT.
+- **OCT 0:** the hit octave. Tap to cycle −2 to +2, or KEY to follow the keyboard octave.
+- **− and +:** move the keyboard down or up an octave.
 
-**12. Set your recording level**
-1. Play the loudest part of what you want to record.
-2. Record it and read the peak in OSSUARY or your editor (dBFS: decibels below digital full scale).
-3. Change LEVEL until the loudest peak sits between −6 and −3 dBFS.
-4. Record again.
+**Computer keyboard map**
+- A S D F G H J K L ; ': white piano keys. W E T Y U O P: black keys.
+- Z X C V B N M: chords C MIN, D DIM, E♭ MAJ, F MIN, G MIN, A♭ MAJ, B♭ MAJ.
+- 1 to 6: the six hits.
+- Up or down arrow, or . and , : octave.
+- Left or right arrow: previous or next stock preset (the built-in sounds).
+- Shift with left or right arrow: previous or next kaiju.
+- Enter: random kaiju.
+- Q: duck the wash (lowers the tail under new notes).
+- Backspace: undo.
+- Caps Lock: hold. Space: panic.
 
-Presets start around −8 dBFS on a single key. −6 or −10 dB are starting points only.
+**MIDI keyboard**
+- Notes play the keys. The − and + buttons shift the range.
+- Sustain pedal: hold.
+- Volume (controller 7): LEVEL.
+- All notes off (controller 123): panic.
 
-**13. Export, save and share**
-On the OUT tab:
-1. Tap the export format chip to choose MUSIC 44.1/24, CD 44.1/16, ARCHIVE 32F or VIDEO 48/24, and hold it for setup.
-2. Open OSSUARY from the same web address and your takes are already there.
-3. Tap SAVE, then SLOT 1 to SLOT 6, to save the patch.
-4. Tap a SLOT to load it.
-5. Tap EXPORT to download the patch as a file.
-6. Tap IMPORT and pick a patch file to load it.
-7. Tap LINK to copy a link to the patch.
+---
 
-**Workflow**
-Load a kaiju, play it with the input you prefer, shape it, record at a safe level and finish the takes in OSSUARY. This replaces building patches in one tool, recording in another, and renaming and converting files by hand.
+**3. The TONE tab**
+
+The TONE tab shapes the sound itself: layer volumes, note shape, voice and filter.
+
+- **CHOIR, STRINGS, ORGAN, BELL, ABYSS:** volume of each layer.
+- **ATTACK:** how slowly a note fades in.
+- **RELEASE:** how slowly it fades out after you let go.
+- **DETUNE:** spread between slightly mistuned copies.
+- **VIBRATO:** pitch wobble.
+- **TREMOLO:** volume wobble.
+- **VOWEL:** moves the voice between vowel sounds.
+- **CUTOFF:** brightness. Lower is darker.
+- **RES:** emphasis around the cutoff.
+- **LFO RATE:** speed of the filter's slow movement.
+- **LFO AMT:** how far the filter moves.
+
+---
+
+**4. The FX tab**
+
+The FX tab shapes space and character. Each panel has up and down arrows that step through its dial sets.
+
+**Left panel**
+- **Reverb set:** RVB SIZE (length of the tail), RVB DAMP (how dull the tail is), RVB PRE (delay before the reverb starts), RVB RTN (reverb volume).
+- **Echo set:** ECH TIME (time between repeats), ECH FDBK (how many repeats), ECH TONE (brightness of repeats), ECH WIDE (stereo width), WASH (after you let go, the echoes swell into a wash), LOOP PEAK (makes the echo ring like a held tone), LOOP DRIFT (slow timing wander).
+
+**Right panel**
+- **GRIT + BEND set:** GRIT DRV (distortion amount), GRIT TONE (its brightness), CRUSH (lo-fi crunch), RING (metallic, robotic tone), RING HZ (pitch of that tone).
+- **Ensemble set:** ENS RATE (speed), ENS DEP (depth), ENS RTN (volume).
+- **Loop voice set:**
+  - LOOP VOWEL and VOWEL TRAVEL: the echoes sing a vowel that glides.
+  - DIFFUSE: smears echoes into a wash.
+  - BREATH: adds breathiness to the echoes.
+  - SHIMMER: rising shimmer in the echoes.
+  - SHM PITCH: shimmer pitch.
+  - LOOP BEAT: two ringing tones throb against each other.
+  - PRE-SWELL: a swell that blooms into the note.
+
+---
+
+**5. The OUT tab**
+
+The OUT tab holds recording, spatial sound, kaiju selection, saving and level.
+
+**Recording**
+- **REC:** start recording. Tap again to stop.
+- **ONESHOT:** records one hit and stops by itself.
+- **LEN:** longest one-shot take (6, 12, 20 or 30 seconds).
+- **LIFE:** how long echo tails may last (10, 20 or 30 seconds).
+- **FADE:** fades everything out (4 seconds to start). Hold it to change the length.
+- **DUCK:** lowers the tail under new notes. Tap again to bring it back.
+- **VIDEO 48/24:** export format. Tap to cycle VIDEO, MUSIC, CD and ARCHIVE. Hold for setup.
+- **STEREO:** recording format. Tap to cycle STEREO, MONO and 5.1.
+- **SC 01:** scene number (01 to 99). Takes restart at 01.
+- **Take chips (for example T1 5.9S):** appear after you record. Tap one to save its file.
+
+**Space and speakers**
+- **ROAM:** tap to cycle FIXED (kaiju stays centred), ROAM (turn your device to follow it) and ROAM 3D (the same, for headphones).
+- **FULL:** tap to switch to SPEAKER, which folds deep bass into harmonics for phone speakers.
+- **HUNT:** face the kaiju and hold to capture it. Turn your back and keep still to hide.
+- **ARRAY:** opens SONAR ARRAY for 5.1 surround. Choose MUSIC, BEAST, SFX or SPACE, then tap the speakers (L, R, C, LS, RS, SUB) to send that layer to them. SCENE gives STAGE, WRAP and FRONT layouts. The LFE slider sets the bass channel.
+
+**Kaiju**
+- **RANDOM:** a new kaiju with its own sound.
+- **DEFAULT:** the custom house kaiju.
+- **PREV, NEXT:** step through a bank of generic stock presets.
+- **UNDO:** go back one step.
+- **HIT SYNTH:** tap to cycle hit styles: HIT SYNTH (each hit built at its pitch), HIT TAPE (one recording, speed and pitch move together) or HIT CRUNCH (lo-fi, gritty).
+
+**Saving**
+- **SAVE, then SLOT 1 to SLOT 6:** saves your sound in that slot. Tap a slot on its own to load it.
+- **EXPORT:** downloads your sound as a file.
+- **IMPORT:** loads a saved file.
+- **LINK:** copies a link to your sound.
+
+**Level and display**
+- **LEVEL:** master volume. This sets your recording level.
+- **LOW CUT:** removes bass below the set pitch.
+- **BIG TEXT:** larger text.
+- **CALM FX:** less movement on screen.
+
+---
+
+**6. Exporting your sound**
+
+This section captures takes, sets your file format and moves them into your project.
+
+1. Tap VIDEO 48/24 until the format suits your project (VIDEO 48/24, MUSIC 44.1/24, CD 44.1/16 or ARCHIVE 32F).
+2. Hold that chip to open setup, then tap RATE, DEPTH and PEAK to fine-tune. PEAK sets AS IS, SAFE (turns down only if over −1 dBFS) or NORM (sets the peak to −1 dBFS).
+3. Tap STEREO to choose STEREO, MONO or 5.1.
+4. Tap SC to set the scene number.
+5. Play the loudest part you expect to record.
+6. Record it and read the peak in OSSUARY\* or your editor (dBFS means decibels below digital full scale).
+7. Change LEVEL until the loudest peak sits between −6 and −3 dBFS. (Presets start around −8 dBFS on a single key. −6 or −10 dB are starting points only.)
+8. Tap REC, play, then tap STOP.
+9. For a single hit, tap ONESHOT, then play the hit. Tap LEN first to set the longest it can run.
+10. Tap the take chip to save the WAV file.
+
+Files are named by kaiju, scene and take, for example KAIJU_STORM-TEETH_SC01_T01_TK_48k24.wav. OS in the name means a one-shot. An asterisk after a take's length means it reached the time limit. Each file carries scene and take notes that film and audio software can read.
+
+**Next steps**
+- **In your recording software (DAW):** drag the WAV file onto a track.
+- **In OSSUARY\*:** open OSSUARY from the same web address. Your takes are already in its TAKES list. Process one and send it back, and it appears as a chip in KAIJU-BLUE.
+
+\*OSSUARY is a companion multiband spectral smoothing compressor. It automatically reads your recorded takes into its library for processing, then automatically returns the processed audio to a new take slot in KAIJU-BLUE.
+
+---
+
+**Conclusion**
+
+Turn it on and you have a monster to play. Load a new kaiju when you want a new sound, play it with touch, keyboard or MIDI, and shape it until it feels right. Record takes at a safe level and send them to OSSUARY or straight into your project. Use it for a film trailer, a game, an indie score or a ringtone nobody else has. One instrument gives you a different creature every time you reach for a new sound.
