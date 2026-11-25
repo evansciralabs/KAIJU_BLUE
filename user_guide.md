@@ -1,12 +1,6 @@
-**USER GUIDE IN PROGRESS. TECHNICAL DIFFICULTIES.**
-
-My apologies for the wait. A proper guide is coming.
-
-Claude, by Anthropic
-
 **KAIJU-BLUE: USER GUIDE**
 
-KAIJU-BLUE is a monster sound instrument that loads a random kaiju (giant monster) with its own matching sound, ready to play, shape and record.
+KAIJU-BLUE is a monster sound instrument that loads a random kaiju (giant monster) with its own matching sound, ready to play, shape and record, and it learns your MIDI knobs and pads.
 
 ---
 
@@ -21,10 +15,11 @@ This section turns it on, gets you playing and shows you where everything is.
 5. Fire a hit: tap BRAAAM, IMPACT, TOLL, RISER, SCREAM or ROAR. BRAAAM, TOLL and RISER follow the last key you pressed. Example: hold a chord, fire RISER, then land on BRAAAM.
 6. Set the hit octave: tap OCT 0 to move the hits up or down by up to two octaves, or to KEY so they follow the keyboard's octave.
 7. Set the keyboard octave: tap − or +.
-8. Change the sound: tap TONE for the sound itself, FX for effects, or OUT for recording, saving and kaiju.
-9. Turn a dial: press it and drag up or down. On a computer, hold Shift while dragging for fine control. Dials are set on screen, and MIDI does not control them.
-10. Load a different kaiju: tap OUT, then tap RANDOM for a new kaiju, or DEFAULT for the custom house kaiju. Tap PREV or NEXT to step through a bank of generic stock presets.
-11. Tap the eye icon in the top right corner to hide or show the controls.
+8. Change the sound: tap TONE for the sound itself, FX for effects, or OUT for recording, saving, kaiju and MIDI training.
+9. Turn a dial: press it and drag up or down. On a computer, hold Shift while dragging for fine control.
+10. Run a dial from a MIDI knob: press `Ctrl+Shift+\`, touch the dial, move the knob, then press `Ctrl+Shift+\` again. Section 6 trains hits and buttons too.
+11. Load a different kaiju: tap OUT, then tap RANDOM for a new kaiju, or DEFAULT for the custom house kaiju. Tap PREV or NEXT to step through a bank of generic stock presets.
+12. Tap the eye icon in the top right corner to hide or show the controls.
 
 ---
 
@@ -102,12 +97,14 @@ Sets what each key plays.
 - Q: duck the wash (lowers the tail under new notes).
 - Backspace: undo.
 - Caps Lock: hold. Space: panic.
+- `Ctrl+Shift+\`: MIDI training on or off (section 6).
 
-**MIDI keyboard**
+**MIDI keyboard and controller**
 - Notes play the keys. The − and + buttons shift the range.
 - Sustain pedal: hold.
 - Volume (controller 7): LEVEL.
 - All notes off (controller 123): panic.
+- Every dial, hit and button can also be trained to a knob, fader, pad or button (section 6).
 
 ---
 
@@ -153,7 +150,7 @@ The FX tab shapes space and character. Each panel has up and down arrows that st
 
 **5. The OUT tab**
 
-The OUT tab holds recording, spatial sound, kaiju selection, saving and level.
+The OUT tab holds recording, spatial sound, kaiju selection, MIDI training, saving and level.
 
 **Recording**
 - **REC:** start recording. Tap again to stop.
@@ -180,11 +177,16 @@ The OUT tab holds recording, spatial sound, kaiju selection, saving and level.
 - **UNDO:** go back one step.
 - **HIT SYNTH:** tap to cycle hit styles: HIT SYNTH (each hit built at its pitch), HIT TAPE (one recording, speed and pitch move together) or HIT CRUNCH (lo-fi, gritty).
 
+**MIDI training**
+- **TRAIN:** turns MIDI training on or off. Lit means on. (`Ctrl+Shift+\`)
+- **TEMPLATE:** ready-made MIDI assignments, on or off. Lit means on.
+- **FORGET:** erases all training. Tap twice.
+
 **Saving**
-- **SAVE, then SLOT 1 to SLOT 6:** saves your sound in that slot. Tap a slot on its own to load it.
-- **EXPORT:** downloads your sound as a file.
-- **IMPORT:** loads a saved file.
-- **LINK:** copies a link to your sound.
+- **SAVE, then SLOT 1 to SLOT 6:** saves your sound in that slot. Tap a slot on its own to load it. Slots do not store MIDI training.
+- **EXPORT:** downloads your sound and your MIDI training as a file.
+- **IMPORT:** loads a saved file. If its MIDI training clashes with yours, you choose KEEP MINE or USE PATCH.
+- **LINK:** copies a link to your sound. It does not carry MIDI training.
 
 **Level and display**
 - **LEVEL:** master volume. This sets your recording level.
@@ -194,7 +196,60 @@ The OUT tab holds recording, spatial sound, kaiju selection, saving and level.
 
 ---
 
-**6. Exporting your sound**
+**6. Training your MIDI controller**
+
+Training teaches KAIJU-BLUE which knob, fader, pad or button on your MIDI controller (a keyboard, pad box or knob box connected by USB or Bluetooth) runs which dial, hit or button, and it never changes the controller or sends anything to it.
+
+1. Connect your controller and tap the power button, in Chrome or Edge.
+2. Press `Ctrl+Shift+\` (Control, not Command, on a Mac), or tap TRAIN.
+3. Touch the dial, hit or button you want to train.
+4. Move a knob or fader for a dial, or hit a pad or press a button for a hit or button.
+5. Repeat for each control you want.
+6. Press `Ctrl+Shift+\` again.
+
+**While TRAIN is on**
+- Touching a control picks it instead of using it.
+- A dashed outline marks controls already trained, a white outline marks the one picked, and the banner at the top names it and shows what it heard (for example CC 74, which is knob number 74).
+- Tabs still switch, and long-pressing FREEZE or PULSE still opens their dials, so those can be trained too.
+- Touch the picked control again, or press Esc, to unpick it.
+- Backspace or Delete clears the picked control's training.
+- A new assignment replaces the old one, for that control and for that knob.
+- With nothing picked, trained controls work as normal, so you can try them without leaving TRAIN.
+- A dial needs a knob, fader or wheel. A hit or button needs a pad, key or button. A mismatch shows a message and assigns nothing.
+
+**How trained controls behave**
+- **Dials:** a trained dial jumps to the knob's position as soon as you move the knob.
+- **Hits:** a trained hit fires every time you strike the pad.
+- **Buttons:** a trained button switches on and off with each press, whether the controller's button latches or springs back.
+
+**What can be trained**
+- Every dial, including the FREEZE and PULSE dials and the macros.
+- All six hits.
+- Every button except PLAY, TONE, FX, OUT, the power button, EXPORT, IMPORT, LINK and the take chips.
+
+**TEMPLATE (works with no training)**
+- **Mod wheel:** CUTOFF.
+- **Pads on MIDI channel 10, notes 36 to 41:** BRAAAM, IMPACT, TOLL, RISER, SCREAM, ROAR, in that order.
+- **Controller numbers 115 to 119:** PREV, NEXT, PANIC, HOLD, FREEZE, in that order. Many controllers send these from their transport buttons (rewind, fast-forward, stop, play, record), but not all do.
+- **MIDI start and continue:** HOLD. **MIDI stop:** PANIC.
+- **Sustain pedal, volume and all notes off:** keep their jobs.
+- Anything you train wins over the template.
+- Turn TEMPLATE off to hand channel 10 pads back to the piano keys.
+
+**Taking your training with you**
+- EXPORT saves your training and the TEMPLATE setting inside the patch file.
+- IMPORT adds the file's training to the device's.
+- If the two clash, a message asks you to pick KEEP MINE or USE PATCH. KEEP MINE is the safe choice, and Esc picks it.
+- The sound loads either way, and anything in the file that does not clash is added either way.
+- Training is saved in this browser at this web address. Slots and LINK do not carry it.
+
+**If a button is not heard**
+- Some controllers send their transport buttons in a form KAIJU-BLUE cannot receive.
+- Set the controller to send plain knob or note messages, or train a different button.
+
+---
+
+**7. Exporting your sound**
 
 This section captures takes, sets your file format and moves them into your project.
 
@@ -221,4 +276,4 @@ Files are named by kaiju, scene and take, for example KAIJU_STORM-TEETH_SC01_T01
 
 **Conclusion**
 
-Turn it on and you have a monster to play. Load a new kaiju when you want a new sound, play it with touch, keyboard or MIDI, and shape it until it feels right. Record takes at a safe level and send them to OSSUARY or straight into your project. Use it for a film trailer, a game, an indie score or a ringtone nobody else has. One instrument gives you a different creature every time you reach for a new sound.
+Turn it on and you have a monster to play. Load a new kaiju when you want a new sound, play it with touch, keyboard or MIDI, train your own knobs and pads to the dials, and shape it until it feels right. Record takes at a safe level and send them to OSSUARY or straight into your project. Use it for a film trailer, a game, an indie score or a ringtone nobody else has. One instrument gives you a different creature every time you reach for a new sound.
