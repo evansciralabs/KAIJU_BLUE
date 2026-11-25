@@ -82,6 +82,9 @@ button{font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;
 .sv{min-height:1.15em;color:var(--hot);font-size:8px;font-weight:700;text-shadow:0 1px 4px #000}
 #scope.run .sn,#scope.run .sl b,#scope.run .sd{color:var(--hot)}
 @media (max-height:520px){#scope{width:min(42%,150px)}.sv{display:none}}
+body.trn .kn[data-ta],body.trn button[data-ta]{outline:1px dashed #b6ff3b;outline-offset:2px}body.trn .tsel{outline:2px solid #fff!important;outline-offset:2px;box-shadow:0 0 12px rgba(255,255,255,.8)}.tfl{filter:brightness(1.9)}
+#trnb{position:fixed;z-index:31;left:50%;top:calc(env(safe-area-inset-top,0px) + 52px);transform:translateX(-50%);padding:3px 10px;font-weight:700;font-size:11px;color:#b6ff3b;background:rgba(2,8,14,.85);border:1px solid #b6ff3b;white-space:nowrap;pointer-events:none;letter-spacing:.06em;max-width:96vw;overflow:hidden;text-overflow:ellipsis}#trnb[hidden]{display:none}
+#trm{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:12px}#trm>div{width:min(92vw,460px);padding:14px;display:flex;flex-direction:column;gap:10px;background:#060d14;border:1px solid #b6ff3b;color:#d7f3ff;font-size:11px;line-height:1.4;box-shadow:0 0 24px rgba(182,255,59,.25)}#trm b{color:#b6ff3b;letter-spacing:.06em}#trm .ls{display:flex;flex-direction:column;gap:4px;color:#fff}#trm .bt{display:grid;grid-template-columns:1fr 1fr;gap:8px}#trm button{padding:10px 4px;font:inherit;font-weight:700;color:#d7f3ff;background:#02060a;border:1px solid #06b6d4}#trm button:last-child{border-color:#b6ff3b;color:#b6ff3b}
 #rd{position:fixed;z-index:30;left:50%;top:calc(env(safe-area-inset-top,0px) + 80px);transform:translateX(-50%);padding:3px 10px;font-weight:700;font-size:11px;color:var(--c);background:rgba(2,8,14,.65);border:1px solid var(--c);opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
 .kw:has(.kn:focus-visible){outline:2px solid #fff;outline-offset:3px}#pw:focus-visible{box-shadow:inset 0 0 0 2px #fff}
 html.lt .kw,html.lt .sl,html.lt .sd,html.lt .sv,html.lt .wk{font-size:11px}html.lt .kw{width:66px}html.lt .chip,html.lt .hb{font-size:12px}
@@ -943,11 +946,13 @@ function show(){const id=ord[bi],p=PRE[(id-1)%PRE.length],c=KV[id]&&KV[id].k;
 /* UI */
 let pnm="",vbs=[],lyb={};
 const all=[],PW={},refresh=()=>all.forEach(f=>f());
+/* TRAIN registry: every dial by its param key (macros by label), every hit pad by number */
+const TRK={};
 function knob(par,lab,get,set,big,sub,key){const d=document.createElement("div");d.className="kw"+(big?" big":"");
  d.innerHTML='<div class="kn" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="100"><i></i></div><span>'+lab+'</span>'+(sub?'<em>'+sub+'</em>':'');
  const kn=d.firstChild,u=()=>{const v=get();kn.style.setProperty("--v",v);kn.setAttribute("aria-valuenow",Math.round(v*100));kn.setAttribute("aria-label",lab);try{kn.setAttribute("aria-valuetext",FM[key]?FM[key](v):Math.round(v*100)+"%")}catch(_){}};let y=null,v0;
  kn.onpointerdown=e=>{kn.setPointerCapture(e.pointerId);y=e.clientY;v0=get();RD(key,lab,v0)};kn.onpointermove=e=>{if(y==null)return;set(cl(v0+(y-e.clientY)/(e.shiftKey?600:160)));u();RD(key,lab,get())};kn.onpointerup=kn.onpointercancel=()=>{y=null;kn.blur()};
- kn.onkeydown=e=>{const s={ArrowUp:.02,ArrowRight:.02,ArrowDown:-.02,ArrowLeft:-.02,PageUp:.1,PageDown:-.1,Home:-1,End:1}[e.key];if(s){e.preventDefault();e.stopPropagation();set(cl(get()+s));u();RD(key,lab,get())}};par.appendChild(d);all.push(u);u()}
+ kn.onkeydown=e=>{const s={ArrowUp:.02,ArrowRight:.02,ArrowDown:-.02,ArrowLeft:-.02,PageUp:.1,PageDown:-.1,Home:-1,End:1}[e.key];if(s){e.preventDefault();e.stopPropagation();set(cl(get()+s));u();RD(key,lab,get())}};par.appendChild(d);all.push(u);u();{const id="D:"+(key||lab);kn.dataset.tid=id;(TRK[id]||(TRK[id]={els:[],lab:lab,set:v=>{set(cl(v));refresh();RD(key,lab,get())}})).els.push(kn)}}
 function pn(par,a){const w=document.createElement("div");w.className="w";w.innerHTML='<div class="ch"><div class="in"><div class="kg"></div></div></div>';par.appendChild(w);PW[a]=[w,TBN.find(n=>cols[n].includes(par))];return w.querySelector(".kg")}
 const KB=(par,t,ks)=>{const g=pn(par,t);ks.forEach(k=>knob(g,D[k][0],()=>E(k),v=>{B[k]=cl(v-(E(k)-B[k]));apply();refresh()},0,0,k))};
 const TBN=["PLAY","TONE","FX","OUT"],cols={};
@@ -1151,7 +1156,7 @@ function arDiscrete(on){if(!ac||!arN)return;const d=ac.destination;if(on&&d.maxC
 const chip=(par,txt,on,fn)=>{const b=document.createElement("button");b.className="chip"+(on?" on":"");b.textContent=txt;b.onclick=()=>fn(b);par.appendChild(b);return b};
 {const[pl,pr]=cols.PLAY;let g=pn(pl,"LAYERS");LN.forEach(([n,k])=>{lyb[k]=chip(g,n,L[k],b=>{L[k]=L[k]?0:1;b.classList.toggle("on",!!L[k])})});
  g=pn(pr,"VOICING");const vb=VC.map(([n],i)=>chip(g,n,i===vi,()=>{vi=i;vb.forEach((x,j)=>x.classList.toggle("on",j===i))}));vbs=vb;
- HT.forEach(([n,fn],hi)=>{const b=chip($("#hits"),n,0,()=>{});b.classList.add("pad");b.onpointerdown=e=>{e.preventDefault();hitK(hi)};b.onclick=e=>{if(ready&&e.isTrusted&&!e.detail)hitK(hi)}/* detail 0 = keyboard Enter/Space; pointer and synthesized-touch clicks are already handled by pointerdown */});
+ HT.forEach(([n,fn],hi)=>{const b=chip($("#hits"),n,0,()=>{});b.classList.add("pad");b.dataset.tid="HIT"+hi;TRK["HIT"+hi]={els:[b],lab:n,hit:hi};b.onpointerdown=e=>{e.preventDefault();hitK(hi)};b.onclick=e=>{if(ready&&e.isTrusted&&!e.detail)hitK(hi)}/* detail 0 = keyboard Enter/Space; pointer and synthesized-touch clicks are already handled by pointerdown */});
  {const ob=chip($("#hits"),hOctL(),0,()=>{HOC=[-2,-1,0,1,2,9][([-2,-1,0,1,2,9].indexOf(HOC)+1)%6];ob.textContent=hOctL();ob.classList.toggle("on",HOC!==0);try{localStorage.setItem("kj_hoct",HOC)}catch(_){}toast(HOC===9?"HITS FOLLOW THE KEYBOARD OCTAVE":"HIT OCTAVE "+(HOC>0?"+":"")+HOC)});ob.classList.add("pad","hoct");ob.classList.toggle("on",HOC!==0);ob.setAttribute("aria-label","HIT OCTAVE")}
  KB(pl,"SENDS",["rv","ec","en","gr"]);
  g=pn(pr,"MACROS");g.classList.add("g2");[["dread","DREAD"],["rage","RAGE"],["ghost","GHOST"],["swell","SWELL"],["susp","SUSPENSE"],["sing","SING"]].forEach(([m,l])=>knob(g,l,()=>MV[m],v=>{MV[m]=v;refresh();apply()},1))}
@@ -1380,8 +1385,8 @@ const slots=()=>{try{return JSON.parse(localStorage.getItem("kj_slots"))||[]}cat
  chip(q,"BIG TEXT",ls.lt,b=>{ls.lt=!ls.lt;b.classList.toggle("on",!!ls.lt);sv();ap()});chip(q,"CALM FX",ls.calm,b=>{ls.calm=!ls.calm;b.classList.toggle("on",!!ls.calm);sv();ap()});ap()}
  g=pn(cols.OUT[1],"PATCH");g.classList.add("g2","gs");const mb=chip(g,"SAVE",0,b=>{sm=!sm;b.classList.toggle("on",!!sm)});mb.style.borderColor="rgba(255,59,107,.7)";
  for(let i=0;i<6;i++)sb.push(chip(g,"SLOT "+(i+1),0,()=>{const a=slots();if(sm){a[i]=snap();try{localStorage.setItem("kj_slots",JSON.stringify(a))}catch(_){showErr("SAVE BLOCKED")}sm=0;mb.classList.remove("on")}else if(a[i])setP(a[i]);drawSl()}));drawSl();
- chip(g,"EXPORT",0,()=>dl(new Blob([JSON.stringify(snap(),null,1)],{type:"application/json"}),"kaiju-"+(pnm||"patch").toLowerCase().replace(/\W+/g,"-")+".json"));
- const fi=document.createElement("input");fi.type="file";fi.accept=".json,application/json";fi.onchange=()=>{const f=fi.files[0];fi.value="";f&&f.text().then(t=>setP(JSON.parse(t))).catch(()=>showErr("BAD PATCH FILE"))};chip(g,"IMPORT",0,()=>fi.click());chip(g,"LINK",0,shareLink)}
+ chip(g,"EXPORT",0,()=>dl(new Blob([JSON.stringify(trPack(snap()),null,1)],{type:"application/json"}),"kaiju-"+(pnm||"patch").toLowerCase().replace(/\W+/g,"-")+".json"));
+ const fi=document.createElement("input");fi.type="file";fi.accept=".json,application/json";fi.onchange=()=>{const f=fi.files[0];fi.value="";f&&f.text().then(t=>{const p=JSON.parse(t);setP(p);trTake(p)}).catch(()=>showErr("BAD PATCH FILE"))};chip(g,"IMPORT",0,()=>fi.click());chip(g,"LINK",0,shareLink)}
 /* LAYOUT: EDIT ME. panel name -> "L" or "R" side column, add "B" to anchor it to the bottom (LB, RB), "" hides it. Order listed = order on screen. */
 const LAYOUT={SENDS:"L",LAYERS:"LB",MACROS:"R",VOICING:"RB","LAYER LEVELS":"L",ENVELOPE:"L",VOICE:"R",FILTER:"R",REVERB:"L",ECHO:"L","GRIT + BEND":"R",ENSEMBLE:"R","LOOP VOICE":"R",MASTER:"R"};/* FREEZE and PULSE dials are in the long-press dropdown (#dd), not a column */
 function place(){for(const k in LAYOUT){const p=PW[k],z=LAYOUT[k];if(!p)continue;p[0].hidden=!z;if(!z)continue;p[0].classList.toggle("dn",z[1]==="B");cols[p[1]][z[0]==="R"?1:0].appendChild(p[0])}}
@@ -1418,7 +1423,7 @@ const pend=e=>{const s=ptrS[e.pointerId];if(s!==undefined){delete ptrS[e.pointer
 ["touchend","touchcancel"].forEach(t=>addEventListener(t,e=>{if(!e.touches.length)for(const id in ptrS){const s=ptrS[id];delete ptrS[id];up(s,"p"+id)}},{capture:true,passive:true}));
 $("#hd").onclick=()=>setHold(!hold);$("#pa").onclick=panic;
 /* LONG-PRESS (450 ms) or shift-click FREEZE / PULSE drops its dials down under the top bar; a plain tap still toggles. Tap outside, Esc, or the same long-press closes it. */
-const ddClose=()=>{const d=$("#dd");d.hidden=true;d.dataset.p="";$("#rd").style.top=""},ddOpen=n=>{const d=$("#dd");if(!d.hidden&&d.dataset.p===n)return ddClose();["FREEZE","PULSE"].forEach(k=>PW[k][0].hidden=k!==n);d.hidden=false;d.dataset.p=n;d.style.top=($(".top").getBoundingClientRect().bottom+6)+"px";$("#rd").style.top=(d.getBoundingClientRect().bottom+8)+"px"};
+const ddClose=()=>{const d=$("#dd");d.hidden=true;d.dataset.p="";$("#rd").style.top="";try{trPlace()}catch(_){}},ddOpen=n=>{const d=$("#dd");if(!d.hidden&&d.dataset.p===n)return ddClose();["FREEZE","PULSE"].forEach(k=>PW[k][0].hidden=k!==n);d.hidden=false;d.dataset.p=n;d.style.top=($(".top").getBoundingClientRect().bottom+6)+"px";$("#rd").style.top=(d.getBoundingClientRect().bottom+8)+"px";try{trPlace()}catch(_){}};
 let lpT=0,lpF=0;[["#fz","FREEZE",()=>frzToggle()],["#pu","PULSE",()=>pcToggle()]].forEach(([s,n,fn])=>{const b=$(s);b.onpointerdown=()=>{clearTimeout(lpT);lpF=0;lpT=setTimeout(()=>{lpF=1;ddOpen(n)},450)};b.onclick=e=>{clearTimeout(lpT);if(lpF){lpF=0;return}if(e.shiftKey)ddOpen(n);else fn()}});
 ["pointerup","pointercancel"].forEach(t=>addEventListener(t,()=>clearTimeout(lpT),true));addEventListener("pointerdown",e=>{if(!$("#dd").hidden&&!e.target.closest("#dd,#fz,#pu"))ddClose()},true);
 $("#vw").onclick=()=>{ddClose();const v=$("#app").classList.toggle("v");$("#vw").classList.toggle("on",v);$("#vw").setAttribute("aria-pressed",v)};
@@ -1452,10 +1457,79 @@ addEventListener("wheel",e=>{if(e.ctrlKey)e.preventDefault()},{passive:false});
 const toast=m=>{const r=$("#rd");r.textContent=m;r.style.opacity=1;clearTimeout(rdT);rdT=setTimeout(()=>{r.style.opacity=0},1800)},setHold=b=>{b=!!b;const was=hold;hold=b;if(b&&!was&&wshPh===1){wshTo(wshV(),0);wshPh=2}$("#hd").classList.toggle("on",b);$("#hd").setAttribute("aria-pressed",b);if(!b){sus.splice(0).forEach(x=>x.rel());if(was&&ac){gvT0=ac.currentTime;gvNS=1}}if(b!==was&&ac&&ready)toast(b?"HOLD · NOTES AND TAIL LOCKED":"HOLD OFF · TAIL WINDS DOWN")};
 let midiOn=0;const mn={};
 function midiInit(){if(midiOn||!navigator.requestMIDIAccess)return;midiOn=1;navigator.requestMIDIAccess().then(a=>{const bind=()=>{const n=[];a.inputs.forEach(i=>{i.onmidimessage=midiMsg;n.push(i.name)});if(n.length)toast("MIDI "+n.join(", ").slice(0,40))};a.onstatechange=bind;bind()}).catch(()=>{midiOn=0})}
-function midiMsg(m){if(!ready)return;const[st_,a,b]=m.data,c=st_&240;
+function midiMsg(m){if(!ready)return;const[st_,a,b]=m.data,c=st_&240;if(trMidi(st_,a,b))return;
  if(c===144&&b>0){if(mn[a]!==undefined)up(mn[a],"m"+a);const k=a-12*(oct+1);mn[a]=k;down(k,"m"+a)}
  else if(c===128||c===144){if(mn[a]!==undefined){up(mn[a],"m"+a);delete mn[a]}}
  else if(c===176){if(a===64)setHold(b>=64);else if(a===7){B.vol=b/127;refresh();apply()}else if(a===123)panic()}}
+/* TRAIN: MIDI assignment. Ctrl+Shift+\ (or OUT > MIDI > TRAIN) turns it on and off. In TRAIN, touch a dial, hit pad or button, then move a knob or hit a pad:
+   that control follows it from then on. A new assignment replaces the old one, both ways. Backspace or Delete clears the picked control; Esc unpicks it.
+   With nothing picked, trained controls play as normal, so you can try them without leaving TRAIN. Tabs still switch tabs.
+   KAIJU-BLUE only listens: it never sends MIDI and never asks for SysEx, so a controller's own presets are never touched. Saved in this browser (kj_midi).
+   TEMPLATE (on by default; a trained assignment always wins): mod wheel (CC1) -> FILTER CUT; channel 10 notes 36-41 (most pad banks) -> hits 1-6;
+   CC 115-119 (Akai's CC transport) -> PREV, NEXT, PANIC, HOLD, FREEZE; MIDI Start/Continue -> HOLD, MIDI Stop -> PANIC. CC64, CC7, CC123 keep their jobs unless trained.
+   Buttons fire on press. A CC button fires on a value above 0; a 0 counts as a press only if it comes 600 ms or more after the last value, so toggle-style buttons work too. */
+let TRN=0,SEL=null,trB=null,tpB=null,trPend={},trRaf=0,trDisp=0;const CCL={},TRBD=document.createElement("div");TRBD.id="trnb";TRBD.hidden=true;TRBD.setAttribute("role","status");document.body.appendChild(TRBD);
+const TMAP=(()=>{try{const m=JSON.parse(localStorage.getItem("kj_midi"));if(m&&m.b&&typeof m.b==="object")return m}catch(_){}return{v:1,tpl:1,b:{}}})(),trSave=()=>{try{localStorage.setItem("kj_midi",JSON.stringify(TMAP))}catch(_){}},
+ TPLC={1:"D:cut",115:"P:MONSTER:0",116:"P:MONSTER:1",117:"#pa",118:"#hd",119:"#fz"},TPLR={"R:start":"#hd","R:stop":"#pa"},
+ trOk=el=>!!el&&!el.closest("#tb,#trnb,#trm")&&!natB(el)&&el.id!=="pw"&&!(PW.MIDI&&PW.MIDI[0].contains(el)),
+ trLab=el=>(el.getAttribute("aria-label")||el.textContent||"").trim().toUpperCase().slice(0,26),
+ trId=el=>{if(el.dataset.tid)return el.dataset.tid;let id;if(el.id)id="#"+el.id;else{const w=el.closest(".w"),n=w&&Object.keys(PW).find(k=>PW[k][0]===w);id=n?"P:"+n+":"+[...w.querySelectorAll("button")].indexOf(el):el.closest("#hits")?"HITS:"+[...$("#hits").children].indexOf(el):"B:"+[...document.querySelectorAll("button")].indexOf(el)}el.dataset.tid=id;return id},
+ trFind=id=>{if(TRK[id])return TRK[id];let el=null;document.querySelectorAll("button").forEach(b=>{if(!el&&trOk(b)&&trId(b)===id)el=b});return el?{els:[el],btn:el,lab:trLab(el)}:null},
+ srcName=s=>{if(s==="R:start")return"MIDI START";if(s==="R:stop")return"MIDI STOP";const m=/^([CNP])(\d+)(?::(\d+))?$/.exec(s);if(!m)return s;const ch=" · CH "+(+m[2]+1);return m[1]==="C"?"CC "+m[3]+ch:m[1]==="N"?"NOTE "+m[3]+ch:"PITCH WHEEL"+ch},
+ trSrcOf=id=>Object.keys(TMAP.b).find(k=>TMAP.b[k]===id);
+function trPaint(){document.querySelectorAll("[data-ta]").forEach(e=>e.removeAttribute("data-ta"));document.querySelectorAll(".tsel").forEach(e=>e.classList.remove("tsel"));
+ if(TRN){new Set(Object.values(TMAP.b)).forEach(id=>{const r=trFind(id);if(r)r.els.forEach(e=>e.setAttribute("data-ta",""))});if(SEL){const r=trFind(SEL);if(r)r.els.forEach(e=>e.classList.add("tsel"))}}
+ document.body.classList.toggle("trn",!!TRN);TRBD.hidden=!TRN;if(trB){trB.classList.toggle("on",!!TRN);trB.setAttribute("aria-pressed",!!TRN)}if(tpB)tpB.classList.toggle("on",!!TMAP.tpl);
+ if(TRN){const r=SEL&&trFind(SEL),sc=SEL&&trSrcOf(SEL);TRBD.textContent=SEL?"TRAIN · "+(r?r.lab:SEL)+(sc?" = "+srcName(sc):"")+" · MOVE A KNOB OR HIT A PAD":"TRAIN · TOUCH A CONTROL · CTRL+SHIFT+\\ ENDS"}trPlace()}
+function trPlace(){const rdE=$("#rd"),dd=$("#dd");if(!TRN){rdE.style.top=dd.hidden?"":(dd.getBoundingClientRect().bottom+8)+"px";return}
+ TRBD.style.top=((dd.hidden?$(".top"):dd).getBoundingClientRect().bottom+6)+"px";rdE.style.top=(TRBD.getBoundingClientRect().bottom+6)+"px"}/* under the top buttons (and the FREEZE / PULSE dials when open), never over them; messages drop below it */
+addEventListener("resize",()=>{if(TRN)trPlace()});
+function trnToggle(){TRN=TRN?0:1;SEL=null;trPaint();const n=Object.keys(TMAP.b).length;toast(TRN?(ready?"TRAIN ON · "+n+" TRAINED":"TRAIN ON · POWER ON SO MIDI CAN BE HEARD"):"TRAIN OFF · "+n+" TRAINED")}
+function trBind(s,id,v){for(const k in TMAP.b)if(TMAP.b[k]===id)delete TMAP.b[k];TMAP.b[s]=id;trSave();CCL[s]={v:v,t:performance.now()};const r=trFind(id);SEL=null;trPaint();toast((r?r.lab:id)+" = "+srcName(s))}
+function trClear(id){let n=0;for(const k in TMAP.b)if(TMAP.b[k]===id){delete TMAP.b[k];n++}trSave();const r=trFind(id);SEL=null;trPaint();toast((r?r.lab:id)+(n?": CLEARED":": NOTHING TRAINED"))}
+/* PATCH FILES carry training: EXPORT adds "midi" {v,tpl,b}; IMPORT adds the file's assignments to this browser's, the file winning where they clash
+   (same knob or same control), so a home rig's training works the same anywhere. Slots and LINK do not carry it: slots share this browser's training already,
+   and a link is for sending a sound to someone with a different controller. Files without "midi" leave training alone. */
+function trPack(p){if(Object.keys(TMAP.b).length||!TMAP.tpl)p.midi={v:1,tpl:TMAP.tpl?1:0,b:{...TMAP.b}};return p}
+function trTake(p){const m=p&&p.midi;if(!m||typeof m!=="object"||!m.b||typeof m.b!=="object")return;const ok=[],cl=[],srcOf=id=>trSrcOf(id),lb=id=>{const r=trFind(id);return r?r.lab:id};
+ for(const s in m.b){const id=m.b[s];if(typeof id!=="string"||id.length>40||!/^([CN]\d{1,2}:\d{1,3}|P\d{1,2}|R:(start|stop))$/.test(s))continue;
+  const here=TMAP.b[s],hs=srcOf(id);if(here===id)continue;if((here&&here!==id)||(hs&&hs!==s))cl.push([s,id,hs&&hs!==s?lb(id)+" · PATCH: "+srcName(s)+" · HERE: "+srcName(hs)+(here&&here!==id?" ("+srcName(s)+" RUNS "+lb(here)+" HERE)":""):srcName(s)+" · PATCH: "+lb(id)+" · HERE: "+lb(here)]);else ok.push([s,id])}
+ const put=a=>a.forEach(([s,id])=>{for(const k in TMAP.b)if(TMAP.b[k]===id)delete TMAP.b[k];TMAP.b[s]=id});
+ const tp=m.tpl===undefined?null:(m.tpl?1:0),tcl=tp!==null&&tp!==(TMAP.tpl?1:0);put(ok);trSave();SEL=null;trPaint();
+ if(!cl.length&&!tcl){if(tp!==null){TMAP.tpl=tp;trSave();trPaint()}toast((pnm||"PATCH")+(ok.length?" · "+ok.length+" TRAINED ADDED":" · TRAINING ALREADY MATCHES"));return}
+ trAsk(cl,tcl?"TEMPLATE · PATCH: "+(tp?"ON":"OFF")+" · HERE: "+(TMAP.tpl?"ON":"OFF"):"",ok.length,use=>{if(use){put(cl);if(tcl)TMAP.tpl=tp}trSave();trPaint();toast(use?"PATCH TRAINING USED · "+(ok.length+cl.length)+" ADDED":"KEPT YOURS · "+ok.length+" ADDED")})}
+/* the clash prompt: shown only when a patch and this device disagree. KEEP MINE is the default (Esc, tapping outside); the sound loads either way. */
+function trAsk(cl,tl,n,done){const o=document.createElement("div");o.id="trm";o.setAttribute("role","dialog");o.setAttribute("aria-modal","true");o.setAttribute("aria-labelledby","trmh");
+ const bx=document.createElement("div"),h=document.createElement("b"),ul=document.createElement("div"),q=document.createElement("div"),r=document.createElement("div"),k=document.createElement("button"),u=document.createElement("button");
+ h.id="trmh";h.textContent="THIS PATCH'S MIDI TRAINING CLASHES WITH THIS DEVICE";const L=cl.map(c=>c[2]);if(tl)L.push(tl);L.slice(0,5).forEach(t=>{const d=document.createElement("div");d.textContent=t;ul.appendChild(d)});if(L.length>5){const d=document.createElement("div");d.textContent="+ "+(L.length-5)+" MORE";ul.appendChild(d)}
+ ul.className="ls";q.textContent="The sound is loaded"+(n?" and "+n+" assignment"+(n>1?"s":"")+" with no clash were added":"")+". Where they clash, whose wins?";r.className="bt";
+ k.type=u.type="button";k.textContent="KEEP MINE";u.textContent="USE PATCH";let fin=0;const end=v=>{if(fin)return;fin=1;removeEventListener("keydown",esc,true);o.remove();done(v)},esc=e=>{if(e.key==="Escape"){e.preventDefault();e.stopPropagation();end(false)}};
+ k.onclick=()=>end(false);u.onclick=()=>end(true);o.addEventListener("pointerdown",e=>{if(e.target===o)end(false)});addEventListener("keydown",esc,true);
+ r.append(k,u);bx.append(h,ul,q,r);o.appendChild(bx);document.body.appendChild(o);setTimeout(()=>{try{k.focus()}catch(_){}},30)}
+function trFlush(){trRaf=0;const p=trPend;trPend={};for(const id in p){const r=trFind(id);if(r&&r.set)r.set(p[id])}}
+function trTpl(s,k,ch,a){if(k==="c")return TPLC[a]||null;if((k==="n"||k==="off")&&ch===9&&a>=36&&a<=41)return"HIT"+(a-36);if(k==="p")return TPLR[s]||null;return null}
+function trMidi(st_,a,b){let s,k;const c=st_&240,ch=st_&15;
+ if(st_>=240){if(st_===250||st_===251)s="R:start";else if(st_===252)s="R:stop";else return false;k="p"}
+ else if(c===176){s="C"+ch+":"+a;k="c"}else if(c===144&&b>0){s="N"+ch+":"+a;k="n"}else if(c===128||c===144){s="N"+ch+":"+a;k="off"}else if(c===224){s="P"+ch;k="w"}else return false;
+ if(TRN&&SEL&&k!=="off"){const r=trFind(SEL);if(!r){SEL=null;trPaint();return true}
+  if(r.set&&(k==="n"||k==="p")){toast("DIALS NEED A KNOB, FADER OR WHEEL");return true}if(!r.set&&k==="w"){toast("BUTTONS AND HITS NEED A PAD, KEY OR BUTTON");return true}
+  trBind(s,SEL,k==="c"?b:1);return true}
+ const id=TMAP.b[s]||(TMAP.tpl?trTpl(s,k,ch,a):null);if(!id)return false;const r=trFind(id);if(!r)return false;
+ if(r.set){if(k==="c"||k==="w"){trPend[id]=k==="w"?((b<<7)|a)/16383:b/127;if(document.hidden)trFlush();else if(!trRaf)trRaf=requestAnimationFrame(trFlush)}return true}
+ if(k==="w"||k==="off")return true;
+ let pr=1;if(k==="c"){const t=performance.now(),L=CCL[s];pr=b>0?(!L||L.v===0||t-L.t>250):!(L&&L.v>0&&t-L.t<600);CCL[s]={v:b,t:t}}
+ if(pr){if(r.hit!==undefined)hitK(r.hit);else{trDisp=1;try{r.btn.click()}finally{trDisp=0}}r.els.forEach(e=>{e.classList.add("tfl");setTimeout(()=>e.classList.remove("tfl"),140)})}
+ return true}
+addEventListener("pointerdown",e=>{if(!TRN)return;const el=e.target.closest&&e.target.closest(".kn,button");if(!el||!trOk(el))return;const id=el.classList.contains("kn")?el.dataset.tid:trId(el);if(!id)return;
+ if(el.id!=="fz"&&el.id!=="pu"){e.preventDefault();e.stopPropagation()}/* FREEZE and PULSE keep their long-press, so their dials can be opened and trained too */
+ SEL=SEL===id?null:id;trPaint()},true);
+addEventListener("click",e=>{if(!TRN||trDisp)return;const el=e.target.closest&&e.target.closest("button");if(el&&trOk(el)){e.preventDefault();e.stopImmediatePropagation()}},true);
+addEventListener("keydown",e=>{if(isTx(e.target))return;
+ if((e.code==="Backslash"||(!e.code&&(e.key==="|"||e.key==="\\")))&&e.ctrlKey&&e.shiftKey&&!e.altKey&&!e.metaKey){e.preventDefault();e.stopPropagation();if(!e.repeat)trnToggle();return}
+ if(!TRN||!SEL)return;if(e.code==="Backspace"||e.code==="Delete"){e.preventDefault();e.stopPropagation();trClear(SEL)}else if(e.code==="Escape"){e.preventDefault();e.stopPropagation();SEL=null;trPaint()}},true);
+{const g=pn(cols.OUT[1],"MIDI");g.classList.add("g2");trB=chip(g,"TRAIN",0,()=>trnToggle());trB.setAttribute("aria-label","TRAIN: ASSIGN MIDI CONTROLS (CTRL+SHIFT+BACKSLASH)");trB.setAttribute("aria-pressed","false");
+ tpB=chip(g,"TEMPLATE",TMAP.tpl,()=>{TMAP.tpl=TMAP.tpl?0:1;trSave();trPaint();toast(TMAP.tpl?"TEMPLATE ON: COMMON KNOBS, PADS AND TRANSPORT WORK":"TEMPLATE OFF: ONLY TRAINED CONTROLS")});tpB.setAttribute("aria-label","TEMPLATE: DEFAULT MIDI ASSIGNMENTS");
+ let fa=0,ft=0;chip(g,"FORGET",0,b=>{if(!fa){fa=1;b.textContent="FORGET ALL?";clearTimeout(ft);ft=setTimeout(()=>{fa=0;b.textContent="FORGET"},3000);return}fa=0;clearTimeout(ft);b.textContent="FORGET";TMAP.b={};trSave();SEL=null;trPaint();toast("ALL TRAINING FORGOTTEN")}).setAttribute("aria-label","FORGET ALL TRAINED ASSIGNMENTS")}
 addEventListener("blur",releaseAll);addEventListener("pagehide",releaseAll);document.addEventListener("visibilitychange",()=>{if(document.hidden)releaseAll();else if(st===2){wlOn();if(ac&&ac.state==="suspended")ac.resume().catch(()=>{})}});
 setInterval(()=>{sweep();if(!Object.keys(ptrS).length&&!kd.size&&!Object.keys(mn).length)Object.keys(held).forEach(s=>release(+s));if(typeof stat==="function")stat()},500);setInterval(vxTick,LITE?250:120);setInterval(fbTick,100);
 /* PULSE: the art swells with the output level */
